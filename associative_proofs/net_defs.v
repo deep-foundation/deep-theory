@@ -23,6 +23,8 @@
 (* Определяем базовый тип идентификаторов *)
 Parameter L: Type.
 
+(* Definition L := nat. *)
+
 Section TuplesNets.
   (* Определение кортежа фиксированной длины n *)
   Fixpoint Tuple (n: nat) : Type :=
@@ -56,6 +58,12 @@ Fixpoint tupleToNestedPair {n: nat} : Tuple n -> NestedPair :=
           end
     end.
 
+
+
+(* Check (tupleToNestedPair (1, (2, (3, tt))) : Tuple 4). *)
+
+(* Compute (tupleToNestedPair (1, (2, (3, tt)))). *)
+
 Section DupletNets.  
   (* Определение дуплета *)
   Definition Duplet := prod L L.
@@ -84,9 +92,9 @@ Fixpoint tupleToNestedPair {n:nat} : Tuple n -> NestedPair :=
     | 1 => fun t => let (l, _) := t in Leaf l
     | S n' => fun t => let l := fst t in let rest := snd t in Node (tupleToNestedPair rest) l
     end. *)
-
+(* 
 Definition tuplesNetToPairsNet {n:nat} (f: TuplesNet n) : NestedPairsNet :=
-    fun id => tupleToNestedPair (f id).
+    fun id => tupleToNestedPair (f id). *)
 
 (*Section NestedPairsNets.
   (* Определение вложенной пары с переменной длиной *)
@@ -113,7 +121,7 @@ Definition tuplesNetToPairsNet {n:nat} : TuplesNet n -> NestedPairsNet :=
 *)
 
 
-Definition removeLastPair : NestedPair -> (NestedPair * L) :=
+(* Definition removeLastPair : NestedPair -> (NestedPair * L) :=
     fix rec x :=
     match x with
       | empty _ => (* обработать случай с empty *)
@@ -166,7 +174,7 @@ Proof.
      - reflexivity.
      - destruct (tn id). simpl. destruct (removeLastPair (tupleToNestedPair t)).
        simpl. apply IHn.
-Qed.
+Qed. *)
 
 
 
