@@ -4,4 +4,4 @@ vscode:
 
 tasks:
   - init: sudo apt-get install -y coq
-  - command: coqc test.v
+  - command: (cd associative_proofs && coqc net_defs.v)
