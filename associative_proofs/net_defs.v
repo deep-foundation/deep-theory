@@ -46,8 +46,6 @@ Section NestedPairsNets.
   Definition NestedPairsNet : Type := L -> NestedPair. 
 End NestedPairsNets.
 
-
-
 Fixpoint tupleToNestedPair {n: nat} : Tuple n -> NestedPair :=
     match n as n0 return Tuple n0 -> NestedPair with
     | 0 => fun _ => Empty tt tt
