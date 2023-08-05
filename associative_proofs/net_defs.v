@@ -38,9 +38,9 @@ End TuplesNets.
 Section NestedPairsNets.
   (* Определение вложенной пары с переменной длиной *)
   Inductive NestedPair: Type :=
-  | EmptyLeaf: unit -> NestedPair
-  | Leaf: L -> NestedPair
-  | Node: NestedPair -> L -> NestedPair.
+  | Empty: unit -> unit -> NestedPair
+  | Singlet: L -> unit -> NestedPair
+  | Doublet: L -> (NestedPair) -> NestedPair
 
   (* Определение ассоциативной сети с вложенными парами *)
   Definition NestedPairsNet : Type := L -> NestedPair. 
@@ -55,6 +55,16 @@ Section DupletNets.
 End DupletNets.
 
 Fixpoint tupleToNestedPair {n: nat} : Tuple n -> NestedPair :=
+    match n as n0 return Tuple n0 -> NestedPair with
+    | 0 => fun _ => Empty tt tt
+    | 1 => fun t => Singlet (fst t) tt
+    | S n' =>
+        fun t => match t with
+          | (f, (_, rest)) => Doublet f (tupleToNestedPair rest)
+          end
+    end.
+
+(* Fixpoint tupleToNestedPair {n: nat} : Tuple n -> NestedPair :=
     match n as n0 return Tuple n0 -> NestedPair with
     | 0 => fun _ => EmptyLeaf tt
     | 1 => fun t => Leaf (fst t)
@@ -73,7 +83,7 @@ Fixpoint tupleToNestedPair {n:nat} : Tuple n -> NestedPair :=
     | 0 => fun _ => EmptyLeaf tt
     | 1 => fun t => let (l, _) := t in Leaf l
     | S n' => fun t => let l := fst t in let rest := snd t in Node (tupleToNestedPair rest) l
-    end.
+    end. *)
 
 Definition tuplesNetToPairsNet {n:nat} (f: TuplesNet n) : NestedPairsNet :=
     fun id => tupleToNestedPair (f id).
