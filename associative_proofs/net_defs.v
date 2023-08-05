@@ -46,13 +46,7 @@ Section NestedPairsNets.
   Definition NestedPairsNet : Type := L -> NestedPair. 
 End NestedPairsNets.
 
-Section DupletNets.  
-  (* Определение дуплета *)
-  Definition Duplet := prod L L.
 
-  (* Определение ассоциативной сети дуплетов *)
-  Definition DupletNet : Type := L -> Duplet.
-End DupletNets.
 
 Fixpoint tupleToNestedPair {n: nat} : Tuple n -> NestedPair :=
     match n as n0 return Tuple n0 -> NestedPair with
@@ -63,6 +57,14 @@ Fixpoint tupleToNestedPair {n: nat} : Tuple n -> NestedPair :=
           | (f, (_, rest)) => Doublet f (tupleToNestedPair rest)
           end
     end.
+
+Section DupletNets.  
+  (* Определение дуплета *)
+  Definition Duplet := prod L L.
+
+  (* Определение ассоциативной сети дуплетов *)
+  Definition DupletNet : Type := L -> Duplet.
+End DupletNets.
 
 (* Fixpoint tupleToNestedPair {n: nat} : Tuple n -> NestedPair :=
     match n as n0 return Tuple n0 -> NestedPair with
