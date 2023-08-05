@@ -40,7 +40,7 @@ Section NestedPairsNets.
   Inductive NestedPair: Type :=
   | Empty: unit -> unit -> NestedPair
   | Singlet: L -> unit -> NestedPair
-  | Doublet: L -> (NestedPair) -> NestedPair
+  | Doublet: L -> (NestedPair) -> NestedPair.
 
   (* Определение ассоциативной сети с вложенными парами *)
   Definition NestedPairsNet : Type := L -> NestedPair. 
