@@ -1,6 +1,6 @@
 vscode:
     extensions:
-      - VSCoq
+      - maximedenes.vscoq
 
 tasks:
   - init: sudo apt-get install -y coq
