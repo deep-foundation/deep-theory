@@ -21,20 +21,25 @@
 *)
 
 (* Определяем базовый тип идентификаторов *)
-Parameter L: Type.
+Inductive L : Type :=
+  | L0 : L
+  | LS : L -> L.
 
-(* Definition L := nat. *)
+Definition L1 := LS L0.
+Definition L2 := LS L1.
+Definition L3 := LS L2.
+Definition L4 := LS L3.
 
 Section TuplesNets.
   (* Определение кортежа фиксированной длины n *)
-  Fixpoint Tuple (n: nat) : Type :=
+  Fixpoint Tuple (n: L) : Type :=
     match n with
-    | 0 => unit
-    | S n' => prod L (Tuple n')
+    | L0 => unit
+    | LS n' => prod L (Tuple n')
     end.
 
   (* Определение ассоциативной сети кортежей фиксированной длины n *)
-  Definition TuplesNet (n: nat) : Type := L -> Tuple n.
+  Definition TuplesNet (n: L) : Type := L -> Tuple n.
 End TuplesNets.
 
 Section NestedPairsNets.
@@ -48,21 +53,23 @@ Section NestedPairsNets.
   Definition NestedPairsNet : Type := L -> NestedPair. 
 End NestedPairsNets.
 
-Fixpoint tupleToNestedPair {n: nat} : Tuple n -> NestedPair :=
+Fixpoint tupleToNestedPair {n: L} : Tuple n -> NestedPair :=
     match n as n0 return Tuple n0 -> NestedPair with
-    | 0 => fun _ => Empty tt tt
-    | 1 => fun t => Singlet (fst t) tt
-    | S n' =>
+    | L0 => fun _ => Empty tt tt
+    | LS L0 => fun t => Singlet (fst t) tt
+    | LS n' =>
         fun t => match t with
           | (f, (_, rest)) => Doublet f (tupleToNestedPair rest)
           end
     end.
 
+Definition exampleTuple3 : Tuple L3 := (L2, (L1, (L0, tt))).
 
+Check exampleTuple3.
 
-(* Check (tupleToNestedPair (1, (2, (3, tt))) : Tuple 4). *)
+Definition nestedPair3 := tupleToNestedPair exampleTuple3.
 
-(* Compute (tupleToNestedPair (1, (2, (3, tt)))). *)
+Check nestedPair3.
 
 Section DupletNets.  
   (* Определение дуплета *)
