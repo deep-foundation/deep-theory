@@ -79,25 +79,67 @@ Fixpoint nestedPairToTuple (n : L) (p : NestedPair) : Tuple n :=
   | LS n', Doublet l p' => (l, nestedPairToTuple n' p')
   end.
 
-Definition pairsNetToTuplesNet {n: L} (f: NestedPairsNet) : TuplesNet n:=
-  fun id => nestedPairToTuple n (f id).
+Fixpoint l_eq_dec (n m : L) : bool :=
+  match n, m with
+  | L0, L0 => true
+  | LS n', LS m' => l_eq_dec n' m'
+  | _, _ => false
+  end.
 
-
-Fixpoint nestedPairToTupleOption (n : L) (np : NestedPair) : option (Tuple n) :=
+Definition nestedPairToTupleOption (n : L) (np : NestedPair) : option (Tuple n) :=
   if l_eq_dec n (depth np) then Some (nestedPairToTuple n np) else None.
 
 Definition pairsNetToTuplesNetOption {n: L} (f: NestedPairsNet) : L -> option (Tuple n) :=
   fun id => nestedPairToTupleOption n (f id).
 
+Definition Hypothesis1 : Prop := 
+  forall (n : L) (f : TuplesNet n), 
+    exists g: NestedPairsNet, forall id: L, 
+      match nestedPairToTupleOption n (g id) with
+      | Some t => f id = t
+      | None => True (* или что-то еще, в зависимости от ваших потребностей *)
+      end.
 
-
-Lemma convert_back_and_forth1 {n:L} (tn: TuplesNet n) : forall id,
-        pairsNetToTuplesNet (tuplesNetToPairsNet tn) = Some tn.
+Theorem prove_Hypothesis1 : Hypothesis1.
 Proof.
-   unfold pairsNetToTuplesNet, tuplesNetToPairsNet.
+  unfold Hypothesis1.
+  intros n f.
+  exists (tuplesNetToPairsNet f).
+  intros id.
+  unfold tuplesNetToPairsNet.
+  remember (nestedPairToTupleOption n (tupleToNestedPair (f id))) as res.
+  destruct res.
+  2:{ trivial. }
+  simpl in *.
+  Check (nestedPairToTupleOption n (tupleToNestedPair (f id))).
+  assert (nestedPairToTupleOption n (tupleToNestedPair (f id)) = Some t).
+  { rewrite Heqres. reflexivity. }
+  clear Heqres.
+  
+  unfold nestedPairToTupleOption in H.
+  destruct (l_eq_dec n (depth (tupleToNestedPair (f id)))).
+  2:{ discriminate. }
+  injection H as H.
+  rewrite H.
+  reflexivity.
+Qed.
+
+
+Definition Hypothesis1 : Prop := 
+  forall (n : L) (f : TuplesNet n), 
+    exists (g : NestedPairsNet), forall (id : L), 
+      f id = nestedPairToTupleOption n (g id).
+
+
+
+
+Lemma convert_back_and_forth1 {n:L} (tn: TuplesNet n) : 
+  forall id, pairsNetToTuplesNetOption (tuplesNetToPairsNet tn) id = Some (tn id).
+Proof.
+   unfold pairsNetToTuplesNetOption, tuplesNetToPairsNet.
    intros.
    (* применяем предикат к функции, которая по определению всегда возвращает Some *)
-   destruct (forall_dec (fun id0 => nestedPairToTuple (tupleToNestedPair (tn id0)))).
+   destruct (forall_dec (fun id0 => nestedPairToTupleOption (tupleToNestedPair (tn id0)))).
    + simpl. 
      f_equal.  (* Убеждаемся, что функции соответствуют друг другу *)
      extensionality id'. 
@@ -116,20 +158,6 @@ Proof.
      - reflexivity.
      - destruct (tn id). simpl. destruct (removeLastPair (tupleToNestedPair t)).
        simpl. apply IHn.
-Qed.
-
-Definition Hypothesis1 : Prop := 
-  forall (n : L) (f : TuplesNet n), 
-    exists (g : NestedPairsNet), forall (id : L), 
-      f id = nestedPairToTuple n (g id).
-
-Theorem prove_Hypothesis1 : Hypothesis1.
-Proof.
-  unfold Hypothesis1.
-  intros n f.
-  exists (tuplesNetToPairsNet f).
-  intros id.
-  reflexivity.
 Qed.
 
 
