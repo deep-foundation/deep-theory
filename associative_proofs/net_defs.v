@@ -7,7 +7,7 @@
 Здесь ∪ обозначает объединение всех функций в семействе {netⁿ}, ⊆ обозначает "это подмножество", а A - пространство всех ассоциаций. Это говорит о том, что все упорядоченные пары, полученные от функций netⁿ, являются подмножеством A.
 Ассоциативная сеть кортежей длины n из семейства функций {netⁿ}, netⁿ : L → Tn отображает идентификатор l из множества L в идентификаторный кортеж длины n, который принадлежит множеству Tn. 'n' в netⁿ указывает на то, что функция возвращает кортежи, содержащие n идентификаторов. 
 Ассоциативная сеть дуплетов: net² : L → T₂.
-Ассоциативная сеть вложенных упорядоченных пар: net : L → P, где P = {(∅,∅) | (∅,l) | (l1,l2), l, l1, l2 ∈ L} - это множество вложенных упорядоченных пар, которое состоит из пустых пар, пар, содержащих только один элемент, и пар, содержащих два элемента.
+Ассоциативная сеть вложенных упорядоченных пар: net : L → P, где P = {(∅,∅) | (l,∅) | (l1,l2), l, l1, l2 ∈ L} - это множество вложенных упорядоченных пар, которое состоит из пустых пар, пар, содержащих только один элемент, и пар, содержащих два элемента.
 Дополнительные пояснения:
 Кортеж длины n ∈ ℕ₀ можно представить как вложенные упорядоченные пары.
 Идентификатор кортежа - уникальный идентификатор, каждый из которых связан с определенным кортежем.
@@ -25,11 +25,6 @@ Inductive L : Type :=
   | L0 : L
   | LS : L -> L.
 
-Definition L1 := LS L0.
-Definition L2 := LS L1.
-Definition L3 := LS L2.
-Definition L4 := LS L3.
-
 Section TuplesNets.
   (* Определение кортежа фиксированной длины n *)
   Fixpoint Tuple (n: L) : Type :=
@@ -45,8 +40,8 @@ End TuplesNets.
 Section NestedPairsNets.
   (* Определение вложенной пары с переменной длиной *)
   Inductive NestedPair: Type :=
-  | Empty: unit -> unit -> NestedPair
-  | Singlet: L -> unit -> NestedPair
+  | Empty: NestedPair
+  | Singlet: L -> NestedPair
   | Doublet: L -> (NestedPair) -> NestedPair.
 
   (* Определение ассоциативной сети с вложенными парами *)
@@ -55,37 +50,37 @@ End NestedPairsNets.
 
 Fixpoint tupleToNestedPair {n: L} : Tuple n -> NestedPair :=
   match n with
-  | L0 => fun t => Empty tt tt
+  | L0 => fun t => Empty
   | LS n' => 
       fun t => 
         match t with
         | (f, rest) => match n' with
-                       | L0 => Singlet f tt
+                       | L0 => Singlet f
                        | LS _ => Doublet f (tupleToNestedPair rest)
                        end
         end
   end.
 
+Definition tuplesNetToPairsNet {n: L} (f: TuplesNet n) : NestedPairsNet:=
+  fun id => tupleToNestedPair (f id).
+
+Definition L1 := LS L0.
+Definition L2 := LS L1.
+Definition L3 := LS L2.
+Definition L4 := LS L3.
 Definition exampleTuple0 : Tuple L0 := tt.
 Definition exampleTuple1 : Tuple L1 := (L0, tt).
-Definition exampleTuple2 : Tuple L2 := (L1, (L0, tt)).
-Definition exampleTuple3 : Tuple L3 := (L2, (L1, (L0, tt))).
 Definition exampleTuple4 : Tuple L4 := (L3, (L2, (L1, (L0, tt)))).
 Definition nestedPair0 := tupleToNestedPair exampleTuple0.
 Definition nestedPair1 := tupleToNestedPair exampleTuple1.
-Definition nestedPair2 := tupleToNestedPair exampleTuple2.
-Definition nestedPair3 := tupleToNestedPair exampleTuple3.
 Definition nestedPair4 := tupleToNestedPair exampleTuple4.
 Check nestedPair0.
 Check nestedPair1.
-Check nestedPair2.
-Check nestedPair3.
 Check nestedPair4.
 Compute nestedPair0.
 Compute nestedPair1.
-Compute nestedPair2.
-Compute nestedPair3.
 Compute nestedPair4.
+
 
 Section DupletNets.  
   (* Определение дуплета *)
@@ -95,56 +90,8 @@ Section DupletNets.
   Definition DupletNet : Type := L -> Duplet.
 End DupletNets.
 
-(* Fixpoint tupleToNestedPair {n: nat} : Tuple n -> NestedPair :=
-    match n as n0 return Tuple n0 -> NestedPair with
-    | 0 => fun _ => EmptyLeaf tt
-    | 1 => fun t => Leaf (fst t)
-    | S n0 => fun t : Tuple (S n0) => Node (tupleToNestedPair ((snd t) : Tuple n0)) (fst t)
-    end.
 
-Fixpoint tupleToNestedPair {n:nat} : Tuple n -> NestedPair :=
-    match n with
-    | 0 => fun _ => EmptyLeaf tt
-    | 1 => fun t => match t with (l, _) => Leaf l end
-    | S n' => fun t => match t with (l, rest) => Node (tupleToNestedPair rest) l end
-    end.
-
-Fixpoint tupleToNestedPair {n:nat} : Tuple n -> NestedPair :=
-    match n with
-    | 0 => fun _ => EmptyLeaf tt
-    | 1 => fun t => let (l, _) := t in Leaf l
-    | S n' => fun t => let l := fst t in let rest := snd t in Node (tupleToNestedPair rest) l
-    end. *)
-(* 
-Definition tuplesNetToPairsNet {n:nat} (f: TuplesNet n) : NestedPairsNet :=
-    fun id => tupleToNestedPair (f id). *)
-
-(*Section NestedPairsNets.
-  (* Определение вложенной пары с переменной длиной *)
-  Inductive NestedPair : Type :=
-  | empty : unit -> NestedPair
-  | singl : L -> NestedPair
-  | nest : L -> NestedPair -> NestedPair.
-
-  (* Определение ассоциативной сети с вложенными парами *)
-  Definition NestedPairsNet : Type := L -> NestedPair. 
-End NestedPairsNets.*)
-
-
-(*Fixpoint tupleToNestedPair {n:nat} : Tuple n -> NestedPair :=
-  match n with
-  | 0 => fun _ => empty tt
-  | S n' => fun t => 
-      let (l, tail) := t in
-      nest l (tupleToNestedPair tail)
-  end.
-
-Definition tuplesNetToPairsNet {n:nat} : TuplesNet n -> NestedPairsNet :=
-    fun f id => tupleToNestedPair (f id).
-*)
-
-
-(* Definition removeLastPair : NestedPair -> (NestedPair * L) :=
+Definition removeLastPair : NestedPair -> (NestedPair * L) :=
     fix rec x :=
     match x with
       | empty _ => (* обработать случай с empty *)
@@ -197,7 +144,7 @@ Proof.
      - reflexivity.
      - destruct (tn id). simpl. destruct (removeLastPair (tupleToNestedPair t)).
        simpl. apply IHn.
-Qed. *)
+Qed.
 
 
 
