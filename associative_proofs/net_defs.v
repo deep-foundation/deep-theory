@@ -64,6 +64,83 @@ Fixpoint tupleToNestedPair {n: L} : Tuple n -> NestedPair :=
 Definition tuplesNetToPairsNet {n: L} (f: TuplesNet n) : NestedPairsNet:=
   fun id => tupleToNestedPair (f id).
 
+Fixpoint depth (p : NestedPair) : L :=
+  match p with
+  | Empty => L0
+  | Singlet _ => LS L0
+  | Doublet _ p' => LS (depth p')
+  end.
+
+Fixpoint nestedPairToTuple (n : L) (p : NestedPair) : Tuple n :=
+  match n, p with
+  | L0, _ => tt
+  | LS n', Empty => (L0, nestedPairToTuple n' Empty)
+  | LS n', Singlet l => (l, nestedPairToTuple n' Empty)
+  | LS n', Doublet l p' => (l, nestedPairToTuple n' p')
+  end.
+
+Definition pairsNetToTuplesNet {n: L} (f: NestedPairsNet) : TuplesNet n:=
+  fun id => nestedPairToTuple n (f id).
+
+
+Fixpoint nestedPairToTupleOption (n : L) (np : NestedPair) : option (Tuple n) :=
+  if l_eq_dec n (depth np) then Some (nestedPairToTuple n np) else None.
+
+Definition pairsNetToTuplesNetOption {n: L} (f: NestedPairsNet) : L -> option (Tuple n) :=
+  fun id => nestedPairToTupleOption n (f id).
+
+
+
+Lemma convert_back_and_forth1 {n:L} (tn: TuplesNet n) : forall id,
+        pairsNetToTuplesNet (tuplesNetToPairsNet tn) = Some tn.
+Proof.
+   unfold pairsNetToTuplesNet, tuplesNetToPairsNet.
+   intros.
+   (* применяем предикат к функции, которая по определению всегда возвращает Some *)
+   destruct (forall_dec (fun id0 => nestedPairToTuple (tupleToNestedPair (tn id0)))).
+   + simpl. 
+     f_equal.  (* Убеждаемся, что функции соответствуют друг другу *)
+     extensionality id'. 
+     destruct (All id').  simpl.  (* Распаковываем существующий тип, получаем наше утверждение *)
+     generalize (tn id').
+     (* здесь начинается реальное свидетельство *)
+     induction n; intros t; destruct t.
+     - reflexivity. 
+     - simpl in e. destruct (removeLastPair (tupleToNestedPair t)). 
+       destruct (nestedPairToTuple n0). inversion e.
+       specialize (IHn t). rewrite IHn in e. inversion e.
+       reflexivity.
+   + apply f. clear f. clear id. intros id.
+     (* доказываем, что функция всегда возвращает Some *)
+     induction n; simpl.
+     - reflexivity.
+     - destruct (tn id). simpl. destruct (removeLastPair (tupleToNestedPair t)).
+       simpl. apply IHn.
+Qed.
+
+Definition Hypothesis1 : Prop := 
+  forall (n : L) (f : TuplesNet n), 
+    exists (g : NestedPairsNet), forall (id : L), 
+      f id = nestedPairToTuple n (g id).
+
+Theorem prove_Hypothesis1 : Hypothesis1.
+Proof.
+  unfold Hypothesis1.
+  intros n f.
+  exists (tuplesNetToPairsNet f).
+  intros id.
+  reflexivity.
+Qed.
+
+
+Section DupletNets.  
+  (* Определение дуплета *)
+  Definition Duplet := prod L L.
+
+  (* Определение ассоциативной сети дуплетов *)
+  Definition DupletNet : Type := L -> Duplet.
+End DupletNets.
+
 Definition L1 := LS L0.
 Definition L2 := LS L1.
 Definition L3 := LS L2.
@@ -100,71 +177,13 @@ Compute (tuplesNetToPairsNet complexExampleNet) L3.
 Compute (tuplesNetToPairsNet complexExampleNet) L4.
 Compute (tuplesNetToPairsNet complexExampleNet) L5.
 
+Definition testPairsNet : NestedPairsNet :=
+  fun _ => Doublet (LS L0) (Doublet (LS (LS L0)) (Singlet L0)).
 
+Definition testTuplesNet : TuplesNet (LS (LS (LS L0))) :=
+  pairsNetToTuplesNet testPairsNet.
 
-Section DupletNets.  
-  (* Определение дуплета *)
-  Definition Duplet := prod L L.
-
-  (* Определение ассоциативной сети дуплетов *)
-  Definition DupletNet : Type := L -> Duplet.
-End DupletNets.
-
-
-Definition removeLastPair : NestedPair -> (NestedPair * L) :=
-    fix rec x :=
-    match x with
-      | empty _ => (* обработать случай с empty *)
-      | singl l => (empty tt, l)
-      | nest l' x' => match rec x' with
-        | (x'', l'') => (nest l' x'', l'')
-        end
-  end.
-
-Fixpoint nestedPairToTuple {n:nat} : NestedPair -> option (Tuple n) :=
-    match n return NestedPair -> option (Tuple n) with
-    | O => fun _ => Some tt 
-        | S n => fun p => match removeLastPair p with
-        | (rest, l) => match nestedPairToTuple rest with
-          | None => None
-        | Some t => Some (l,t)
-    end
-        end
-  end.
-
-Definition pairsNetToTuplesNet {n:nat} : NestedPairsNet -> option (TuplesNet n) :=
-    fun f => let f' id := nestedPairToTuple (f id) in
-    match forall_dec f' with
-      | right _ => None
-    | left All => Some (fun id => match All id with exist _ t _ => t end)
-    end.
-
-Lemma convert_back_and_forth1 {n:nat} (tn: TuplesNet n) : forall id,
-        pairsNetToTuplesNet (tuplesNetToPairsNet tn) = Some tn.
-Proof.
-   unfold pairsNetToTuplesNet, tuplesNetToPairsNet.
-   intros.
-   (* применяем предикат к функции, которая по определению всегда возвращает Some *)
-   destruct (forall_dec (fun id0 => nestedPairToTuple (tupleToNestedPair (tn id0)))).
-   + simpl. 
-     f_equal.  (* Убеждаемся, что функции соответствуют друг другу *)
-     extensionality id'. 
-     destruct (All id').  simpl.  (* Распаковываем существующий тип, получаем наше утверждение *)
-     generalize (tn id').
-     (* здесь начинается реальное свидетельство *)
-     induction n; intros t; destruct t.
-     - reflexivity. 
-     - simpl in e. destruct (removeLastPair (tupleToNestedPair t)). 
-       destruct (nestedPairToTuple n0). inversion e.
-       specialize (IHn t). rewrite IHn in e. inversion e.
-       reflexivity.
-   + apply f. clear f. clear id. intros id.
-     (* доказываем, что функция всегда возвращает Some *)
-     induction n; simpl.
-     - reflexivity.
-     - destruct (tn id). simpl. destruct (removeLastPair (tupleToNestedPair t)).
-       simpl. apply IHn.
-Qed.
+Compute testTuplesNet L0.
 
 
 
