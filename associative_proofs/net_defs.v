@@ -54,14 +54,17 @@ Section NestedPairsNets.
 End NestedPairsNets.
 
 Fixpoint tupleToNestedPair {n: L} : Tuple n -> NestedPair :=
-    match n as n0 return Tuple n0 -> NestedPair with
-    | L0 => fun _ => Empty tt tt
-    | LS L0 => fun t => Singlet (fst t) tt
-    | LS n' =>
-        fun t => match t with
-          | (f, (_, rest)) => Doublet f (tupleToNestedPair rest)
-          end
-    end.
+  match n with
+  | L0 => fun t => Empty tt tt
+  | LS n' => 
+      fun t => 
+        match t with
+        | (f, rest) => match n' with
+                       | L0 => Singlet f tt
+                       | LS _ => Doublet f (tupleToNestedPair rest)
+                       end
+        end
+  end.
 
 Definition exampleTuple0 : Tuple L0 := tt.
 Definition exampleTuple1 : Tuple L1 := (L0, tt).
