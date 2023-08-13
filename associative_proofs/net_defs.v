@@ -63,13 +63,26 @@ Fixpoint tupleToNestedPair {n: L} : Tuple n -> NestedPair :=
           end
     end.
 
+Definition exampleTuple0 : Tuple L0 := tt.
+Definition exampleTuple1 : Tuple L1 := (L0, tt).
+Definition exampleTuple2 : Tuple L2 := (L1, (L0, tt)).
 Definition exampleTuple3 : Tuple L3 := (L2, (L1, (L0, tt))).
-
-Check exampleTuple3.
-
+Definition exampleTuple4 : Tuple L4 := (L3, (L2, (L1, (L0, tt)))).
+Definition nestedPair0 := tupleToNestedPair exampleTuple0.
+Definition nestedPair1 := tupleToNestedPair exampleTuple1.
+Definition nestedPair2 := tupleToNestedPair exampleTuple2.
 Definition nestedPair3 := tupleToNestedPair exampleTuple3.
-
+Definition nestedPair4 := tupleToNestedPair exampleTuple4.
+Check nestedPair0.
+Check nestedPair1.
+Check nestedPair2.
 Check nestedPair3.
+Check nestedPair4.
+Compute nestedPair0.
+Compute nestedPair1.
+Compute nestedPair2.
+Compute nestedPair3.
+Compute nestedPair4.
 
 Section DupletNets.  
   (* Определение дуплета *)
