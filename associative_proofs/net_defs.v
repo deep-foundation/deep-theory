@@ -68,6 +68,18 @@ Definition L1 := LS L0.
 Definition L2 := LS L1.
 Definition L3 := LS L2.
 Definition L4 := LS L3.
+Definition L5 := LS L4.
+
+Definition complexExampleNet : TuplesNet (LS (LS (LS L0))) :=
+  fun id => match id with
+  | L0 => (L0, (L0, (L0, tt)))
+  | LS L0 => (L1, (L1, (L0, tt)))
+  | LS (LS L0) => (L2, (L0, (L0, tt)))
+  | LS (LS (LS L0)) => (L3, (L0, (L0, tt)))
+  | LS (LS (LS (LS L0))) => (L4, (L0, (L0, tt)))
+  | LS _ => (L0, (L0, (L0, tt)))
+  end.
+
 Definition exampleTuple0 : Tuple L0 := tt.
 Definition exampleTuple1 : Tuple L1 := (L0, tt).
 Definition exampleTuple4 : Tuple L4 := (L3, (L2, (L1, (L0, tt)))).
@@ -80,6 +92,14 @@ Check nestedPair4.
 Compute nestedPair0.
 Compute nestedPair1.
 Compute nestedPair4.
+
+Compute (tuplesNetToPairsNet complexExampleNet) L0.
+Compute (tuplesNetToPairsNet complexExampleNet) L1.
+Compute (tuplesNetToPairsNet complexExampleNet) L2.
+Compute (tuplesNetToPairsNet complexExampleNet) L3.
+Compute (tuplesNetToPairsNet complexExampleNet) L4.
+Compute (tuplesNetToPairsNet complexExampleNet) L5.
+
 
 
 Section DupletNets.  
