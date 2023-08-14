@@ -15,15 +15,61 @@
 Ассоциация - это упорядоченная пара, состоящая из идентификатора кортежа и кортежа идентификаторов. Эта структура служит для отображения между идентификаторами и кортежами.
 Пустой кортеж представлен пустым множеством: () представлено как ∅.
 
-Гипотеза 1: после преобразования ассоциативной сети кортежей фиксированной длны n
+Гипотеза 1: после преобразования ассоциативной сети кортежей фиксированной длины n
  в ассоциативную сеть вложенных упорядоченных пар, а затем обратно в ассоциативную сеть кортежей длины n,
  мы получим исходную ассоциативную сеть кортежей.
-Гипотеза 2: Ассоциативная сеть дуплетов может представлять ассоциативную сеть вложенных упорядоченных пар, только в том случае, если введена специальная ссылка (l = 0) для обозначения пустого кортежа.
+
+Гипотеза 2: Для ассоциативной сети дуплетов dupletNet: DupletNet
+ существует эквивалентная сеть вложенных упорядоченных пар nestedPairsNet: NestedPairsNet,
+ такая что для каждого идентификатора l: L:
+Если dupletNet l = (l1, l0), тогда nestedPairsNet l = Doublet l1 Empty.
+Если dupletNet l = (l1, l2) и l2 ≠ l0, тогда nestedPairsNet l = Doublet l1 (Doublet l2 Empty).
+
 Гипотеза 3: Ассоциативная сеть дуплетов может представлять любую ассоциативную сеть.
 *)
 
 (* Определяем базовый тип идентификаторов *)
 Definition L := nat.
+Definition l0 := 0.
+
+Section NestedPairsNets.
+  (* Определение вложенной пары с переменной длиной *)
+  Inductive NestedPair: Type :=
+  | Empty: NestedPair
+  | Doublet: L -> (NestedPair) -> NestedPair.
+
+  (* Определение ассоциативной сети с вложенными парами *)
+  Definition NestedPairsNet : Type := L -> NestedPair. 
+End NestedPairsNets.
+
+Fixpoint depth (p : NestedPair) : nat :=
+  match p with
+  | Empty => 0
+  | Doublet _ p' => S (depth p')
+  end.
+
+Section DupletNets.  
+  (* Определение дуплета *)
+  Definition Duplet := prod L L.
+
+  (* Определение ассоциативной сети дуплетов *)
+  Definition DupletNet : Type := L -> Duplet.
+End DupletNets.
+
+Fixpoint nestedPairsNet_to_dupletNetAux (nestedPairsNet: NestedPairsNet) (l: L) (counter: L): DupletNet :=
+  fun l' =>
+  match n with
+  | 0 =>  (l0, l0)  (* Here we suppose, that depth of NestedPair is limited by number n *)
+  | S n' => match nestedPairsNet l with
+            | Empty => if l' =? l then (l0, l0)   (* Here we suppose, that l0 - is correct identifier for Empty *)
+                                 else (nestedPairsNet_to_dupletNetAux nestedPairsNet n' l' (counter + 1)) l'
+            | Doublet l1 pair1 => if l' =? l then (l1, counter)
+                                              else (nestedPairsNet_to_dupletNetAux nestedPairsNet n' counter (counter + 1)) l'
+            end
+  end.
+
+Definition nestedPairsNet_to_dupletNet (nestedPairsNet: NestedPairsNet) (n: nat): DupletNet :=
+  fun l => (nestedPairsNet_to_dupletNetAux nestedPairsNet n l l) l.
 
 Section TuplesNets.
   (* Определение кортежа фиксированной длины n *)
@@ -36,16 +82,6 @@ Section TuplesNets.
   (* Определение ассоциативной сети кортежей фиксированной длины n *)
   Definition TuplesNet (n: nat) : Type := L -> Tuple n.
 End TuplesNets.
-
-Section NestedPairsNets.
-  (* Определение вложенной пары с переменной длиной *)
-  Inductive NestedPair: Type :=
-  | Empty: NestedPair
-  | Doublet: L -> (NestedPair) -> NestedPair.
-
-  (* Определение ассоциативной сети с вложенными парами *)
-  Definition NestedPairsNet : Type := L -> NestedPair. 
-End NestedPairsNets.
 
 Fixpoint tupleToNestedPair {n: nat} : Tuple n -> NestedPair :=
   match n with
@@ -60,19 +96,12 @@ Fixpoint tupleToNestedPair {n: nat} : Tuple n -> NestedPair :=
 Definition tuplesNetToPairsNet {n: nat} (f: TuplesNet n) : NestedPairsNet:=
   fun id => tupleToNestedPair (f id).
 
-Fixpoint depth (p : NestedPair) : nat :=
-  match p with
-  | Empty => 0
-  | Doublet _ p' => S (depth p')
-  end.
-
 (* Лемма о сохранении глубины: *)
 Lemma depth_preserved : forall {l: nat} (t: Tuple l), depth (tupleToNestedPair t) = l.
 Proof.
   intros l. induction l as [| l' IH]; intros t.
   - (* Базовый случай *)
     simpl. reflexivity.
-  
   - (* Шаг индукции *)
     destruct t as [x t']. simpl.
     destruct l'.
@@ -128,16 +157,6 @@ Proof.
   reflexivity.
 Qed.
 
-
-
-
-Section DupletNets.  
-  (* Определение дуплета *)
-  Definition Duplet := prod L L.
-
-  (* Определение ассоциативной сети дуплетов *)
-  Definition DupletNet : Type := L -> Duplet.
-End DupletNets.
 
 Definition complexExampleNet : TuplesNet 3 :=
   fun id => match id with
