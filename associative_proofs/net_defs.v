@@ -1,6 +1,6 @@
 (*
 Определения:
-Множество идентификаторов кортежей: L, |L| ≥ 0
+Множество идентификаторов кортежей: L ∈ ℕ₀
 Множество идентификаторных кортежей длины n ∈ ℕ₀: Tn ⊆ Lⁿ.
 Множество ассоциаций: A ⊆ L × Tn.
 Семейство функций: ∪_n {netⁿ | n ∈ ℕ₀} ⊆ A
@@ -16,12 +16,10 @@
 Пустой кортеж представлен пустым множеством: () представлено как ∅.
 
 Гипотеза о сохранении глубины:
-H_depth: forall n: L, forall t: Tuple n, depth (tupleToNestedPair t) = n.
 Эта гипотеза утверждает, что глубина вложенной пары, полученной из кортежа, всегда равна длине кортежа.
 
-Гипотеза о взаимном обращении функций nestedPairToTuple и tupleToNestedPair:
-H_inverse: forall n: L, forall t: Tuple n, nestedPairToTuple n (tupleToNestedPair t) = t.
-Эта гипотеза утверждает, что применение nestedPairToTuple к результату tupleToNestedPair возвращает исходный кортеж.
+Гипотеза о взаимном обращении функций nestedPairToTupleOption и tupleToNestedPair:
+Эта гипотеза утверждает, что применение nestedPairToTupleOption к результату tupleToNestedPair возвращает исходный кортеж.
 
 Гипотеза 1: Ассоциативная сеть вложенных упорядоченных пар может представлять любую ассоциативную сеть кортежей длины n.
 Гипотеза 2: Ассоциативная сеть дуплетов может представлять ассоциативную сеть вложенных упорядоченных пар, только в том случае, если введена специальная ссылка (l = 0) для обозначения пустого кортежа.
@@ -29,79 +27,51 @@ H_inverse: forall n: L, forall t: Tuple n, nestedPairToTuple n (tupleToNestedPai
 *)
 
 (* Определяем базовый тип идентификаторов *)
-Inductive L : Type :=
-  | L0 : L
-  | LS : L -> L.
+Definition L := nat.
 
 Section TuplesNets.
   (* Определение кортежа фиксированной длины n *)
-  Fixpoint Tuple (n: L) : Type :=
+  Fixpoint Tuple (n: nat) : Type :=
     match n with
-    | L0 => unit
-    | LS n' => prod L (Tuple n')
+    | 0 => unit
+    | S n' => prod L (Tuple n')
     end.
 
   (* Определение ассоциативной сети кортежей фиксированной длины n *)
-  Definition TuplesNet (n: L) : Type := L -> Tuple n.
+  Definition TuplesNet (n: nat) : Type := L -> Tuple n.
 End TuplesNets.
 
 Section NestedPairsNets.
   (* Определение вложенной пары с переменной длиной *)
   Inductive NestedPair: Type :=
   | Empty: NestedPair
-  | Singlet: L -> NestedPair
   | Doublet: L -> (NestedPair) -> NestedPair.
 
   (* Определение ассоциативной сети с вложенными парами *)
   Definition NestedPairsNet : Type := L -> NestedPair. 
 End NestedPairsNets.
 
-Fixpoint tupleToNestedPair {n: L} : Tuple n -> NestedPair :=
+Fixpoint tupleToNestedPair {n: nat} : Tuple n -> NestedPair :=
   match n with
-  | L0 => fun t => Empty
-  | LS n' => 
+  | 0 => fun _ => Empty
+  | S n' => 
       fun t => 
         match t with
-        | (f, rest) => match n' with
-                       | L0 => Singlet f
-                       | LS _ => Doublet f (tupleToNestedPair rest)
-                       end
+        | (f, rest) => Doublet f (tupleToNestedPair rest)
         end
   end.
 
-Definition tuplesNetToPairsNet {n: L} (f: TuplesNet n) : NestedPairsNet:=
+Definition tuplesNetToPairsNet {n: nat} (f: TuplesNet n) : NestedPairsNet:=
   fun id => tupleToNestedPair (f id).
 
-Fixpoint depth (p : NestedPair) : L :=
+Fixpoint depth (p : NestedPair) : nat :=
   match p with
-  | Empty => L0
-  | Singlet _ => LS L0
-  | Doublet _ p' => LS (depth p')
+  | Empty => 0
+  | Doublet _ p' => S (depth p')
   end.
-
-Fixpoint nestedPairToTuple (n : L) (p : NestedPair) : Tuple n :=
-  match n, p with
-  | L0, _ => tt
-  | LS n', Empty => (L0, nestedPairToTuple n' Empty)
-  | LS n', Singlet l => (l, nestedPairToTuple n' Empty)
-  | LS n', Doublet l p' => (l, nestedPairToTuple n' p')
-  end.
-
-Fixpoint l_eq_dec (n m : L) : bool :=
-  match n, m with
-  | L0, L0 => true
-  | LS n', LS m' => l_eq_dec n' m'
-  | _, _ => false
-  end.
-
-Definition nestedPairToTupleOption (n : L) (np : NestedPair) : option (Tuple n) :=
-  if l_eq_dec n (depth np) then Some (nestedPairToTuple n np) else None.
-
-Definition pairsNetToTuplesNetOption {n: L} (f: NestedPairsNet) : L -> option (Tuple n) :=
-  fun id => nestedPairToTupleOption n (f id).
 
 (* Лемма о сохранении глубины: *)
-Lemma depth_preserved : forall {l: L} (t: Tuple l), depth (tupleToNestedPair t) = l.
+Lemma depth_preserved : forall {l: nat} (t: Tuple l), depth (tupleToNestedPair t) = l.
 Proof.
   intros l. induction l as [| l' IH]; intros t.
   - (* Базовый случай *)
@@ -113,6 +83,32 @@ Proof.
     + simpl. reflexivity.
     + simpl. f_equal. apply IH.
 Qed.
+
+Fixpoint nestedPairToTupleOption (n: nat) (p: NestedPair) : option (Tuple n) :=
+  match n, p with
+  | 0, Empty => Some tt
+  | S n', Doublet f p' => 
+      match nestedPairToTupleOption n' p' with
+      | None => None
+      | Some t => Some (f, t)
+      end
+  | _, _ => None
+  end.
+
+Definition pairsNetToTuplesNetOption {n: nat} (f: NestedPairsNet) : L -> option (Tuple n) :=
+  fun id => nestedPairToTupleOption n (f id).
+
+(* Лемма о взаимном обращении функций nestedPairToTupleOption и tupleToNestedPair *)
+Lemma H_inverse: forall n: nat, forall t: Tuple n, nestedPairToTupleOption n (tupleToNestedPair t) = Some t.
+Proof.
+  intros n. induction n as [| n' IH]; intros t.
+  - (* Базовый случай *)
+    destruct t. reflexivity.
+  - (* Шаг индукции *)
+    destruct t as [x t']. simpl.
+    rewrite IH. reflexivity.
+Qed.
+
 
 
 Definition Hypothesis1 : Prop := 
