@@ -94,6 +94,12 @@ Fixpoint nestedPairToTupleOption (n: nat) (p: NestedPair) : option (Tuple n) :=
 Definition pairsNetToTuplesNetOption {n: nat} (f: NestedPairsNet) : L -> option (Tuple n) :=
   fun id => nestedPairToTupleOption n (f id).
 
+Definition pairsNetToTuplesNet { n: nat } (net: NestedPairsNet) (default: Tuple n) : TuplesNet n :=
+  fun id => match nestedPairToTupleOption n (net id) with
+            | Some t => t
+            | None => default
+            end.
+
 (* Лемма о взаимном обращении функций nestedPairToTupleOption и tupleToNestedPair *)
 Lemma H_inverse: forall n: nat, forall t: Tuple n, nestedPairToTupleOption n (tupleToNestedPair t) = Some t.
 Proof.
@@ -125,75 +131,6 @@ Qed.
 
 
 
-Definition Hypothesis1 : Prop := 
-  forall (n : L) (f : TuplesNet n), 
-    exists g: NestedPairsNet, forall id: L, 
-      match nestedPairToTupleOption n (g id) with
-      | Some t => f id = t
-      | None => True (* или что-то еще, в зависимости от ваших потребностей *)
-      end.
-
-Theorem prove_Hypothesis1 : Hypothesis1.
-Proof.
-  unfold Hypothesis1.
-  intros n f.
-  exists (tuplesNetToPairsNet f).
-  intros id.
-  unfold tuplesNetToPairsNet.
-  remember (nestedPairToTupleOption n (tupleToNestedPair (f id))) as res.
-  destruct res.
-  2:{ trivial. }
-  simpl in *.
-  Check (nestedPairToTupleOption n (tupleToNestedPair (f id))).
-  assert (nestedPairToTupleOption n (tupleToNestedPair (f id)) = Some t).
-  { rewrite Heqres. reflexivity. }
-  clear Heqres.
-  
-  unfold nestedPairToTupleOption in H.
-  destruct (l_eq_dec n (depth (tupleToNestedPair (f id)))).
-  2:{ discriminate. }
-  injection H as H.
-  rewrite H.
-  reflexivity.
-Qed.
-
-
-Definition Hypothesis1 : Prop := 
-  forall (n : L) (f : TuplesNet n), 
-    exists (g : NestedPairsNet), forall (id : L), 
-      f id = nestedPairToTupleOption n (g id).
-
-
-
-
-Lemma convert_back_and_forth1 {n:L} (tn: TuplesNet n) : 
-  forall id, pairsNetToTuplesNetOption (tuplesNetToPairsNet tn) id = Some (tn id).
-Proof.
-   unfold pairsNetToTuplesNetOption, tuplesNetToPairsNet.
-   intros.
-   (* применяем предикат к функции, которая по определению всегда возвращает Some *)
-   destruct (forall_dec (fun id0 => nestedPairToTupleOption (tupleToNestedPair (tn id0)))).
-   + simpl. 
-     f_equal.  (* Убеждаемся, что функции соответствуют друг другу *)
-     extensionality id'. 
-     destruct (All id').  simpl.  (* Распаковываем существующий тип, получаем наше утверждение *)
-     generalize (tn id').
-     (* здесь начинается реальное свидетельство *)
-     induction n; intros t; destruct t.
-     - reflexivity. 
-     - simpl in e. destruct (removeLastPair (tupleToNestedPair t)). 
-       destruct (nestedPairToTuple n0). inversion e.
-       specialize (IHn t). rewrite IHn in e. inversion e.
-       reflexivity.
-   + apply f. clear f. clear id. intros id.
-     (* доказываем, что функция всегда возвращает Some *)
-     induction n; simpl.
-     - reflexivity.
-     - destruct (tn id). simpl. destruct (removeLastPair (tupleToNestedPair t)).
-       simpl. apply IHn.
-Qed.
-
-
 Section DupletNets.  
   (* Определение дуплета *)
   Definition Duplet := prod L L.
@@ -202,25 +139,19 @@ Section DupletNets.
   Definition DupletNet : Type := L -> Duplet.
 End DupletNets.
 
-Definition L1 := LS L0.
-Definition L2 := LS L1.
-Definition L3 := LS L2.
-Definition L4 := LS L3.
-Definition L5 := LS L4.
-
-Definition complexExampleNet : TuplesNet (LS (LS (LS L0))) :=
+Definition complexExampleNet : TuplesNet 3 :=
   fun id => match id with
-  | L0 => (L0, (L0, (L0, tt)))
-  | LS L0 => (L1, (L1, (L0, tt)))
-  | LS (LS L0) => (L2, (L0, (L0, tt)))
-  | LS (LS (LS L0)) => (L3, (L0, (L0, tt)))
-  | LS (LS (LS (LS L0))) => (L4, (L0, (L0, tt)))
-  | LS _ => (L0, (L0, (L0, tt)))
+  | 0 => (0, (0, (0, tt)))
+  | 1 => (1, (1, (0, tt)))
+  | 2 => (2, (0, (0, tt)))
+  | 3 => (3, (0, (0, tt)))
+  | 4 => (4, (0, (0, tt)))
+  | S _ => (0, (0, (0, tt)))
   end.
 
-Definition exampleTuple0 : Tuple L0 := tt.
-Definition exampleTuple1 : Tuple L1 := (L0, tt).
-Definition exampleTuple4 : Tuple L4 := (L3, (L2, (L1, (L0, tt)))).
+Definition exampleTuple0 : Tuple 0 := tt.
+Definition exampleTuple1 : Tuple 1 := (0, tt).
+Definition exampleTuple4 : Tuple 4 := (3, (2, (1, (0, tt)))).
 Definition nestedPair0 := tupleToNestedPair exampleTuple0.
 Definition nestedPair1 := tupleToNestedPair exampleTuple1.
 Definition nestedPair4 := tupleToNestedPair exampleTuple4.
@@ -231,87 +162,21 @@ Compute nestedPair0.
 Compute nestedPair1.
 Compute nestedPair4.
 
-Compute (tuplesNetToPairsNet complexExampleNet) L0.
-Compute (tuplesNetToPairsNet complexExampleNet) L1.
-Compute (tuplesNetToPairsNet complexExampleNet) L2.
-Compute (tuplesNetToPairsNet complexExampleNet) L3.
-Compute (tuplesNetToPairsNet complexExampleNet) L4.
-Compute (tuplesNetToPairsNet complexExampleNet) L5.
+Compute (tuplesNetToPairsNet complexExampleNet) 0.
+Compute (tuplesNetToPairsNet complexExampleNet) 1.
+Compute (tuplesNetToPairsNet complexExampleNet) 2.
+Compute (tuplesNetToPairsNet complexExampleNet) 3.
+Compute (tuplesNetToPairsNet complexExampleNet) 4.
+Compute (tuplesNetToPairsNet complexExampleNet) 5.
 
 Definition testPairsNet : NestedPairsNet :=
-  fun _ => Doublet (LS L0) (Doublet (LS (LS L0)) (Singlet L0)).
+  fun _ => Doublet 1 (Doublet 2 (Doublet 0 Empty)).
 
-Definition testTuplesNet : TuplesNet (LS (LS (LS L0))) :=
-  pairsNetToTuplesNet testPairsNet.
+Definition testTupleDefault : Tuple 3 := (0, (0, (0, tt))). 
 
-Compute testTuplesNet L0.
+Definition testTuplesNet : TuplesNet 3 :=
+  pairsNetToTuplesNet testPairsNet testTupleDefault.
 
-
-
-(*
-Section ConversionFunction.
-  Require Import List.
-  Require Import PeanoNat.
-
-  Inductive NestedPair : Type :=
-  | singl : nat -> NestedPair
-  | nest : nat -> NestedPair -> NestedPair.
-
-  Fixpoint Tuple (n: nat) : Type :=
-    match n with
-    | 0 => unit
-    | S n' => nat * Tuple n'
-    end.
-
-  Fixpoint tupleToNestedPair {n: nat} : Tuple n -> NestedPair :=
-    match n with
-    | 0 => fun _ => singl 0
-    | S n' => fun t => nest (fst t) (tupleToNestedPair (snd t))
-    end.
-
-  Definition convertTuplesNetToNestedPairsNet {n: nat} (tn: nat -> Tuple n) : nat -> NestedPair :=
-    fun l => tupleToNestedPair (tn l).
-End ConversionFunction.
-
-Section ConversionProof.
-  Require Import List.
-  Require Import PeanoNat.
-
-  Inductive NestedPair : Type :=
-  | singl : NestedPair
-  | nest : nat -> NestedPair -> NestedPair.
-
-  Fixpoint Tuple (n: nat) : Type :=
-    match n with
-    | 0 => unit
-    | S n' => nat * Tuple n'
-    end.
-
-  Fixpoint tupleToNestedPair {n: nat} : Tuple n -> NestedPair :=
-    match n with
-    | 0 => fun _ => singl
-    | S n' => fun t => nest (fst t) (tupleToNestedPair (snd t))
-    end.
-
-  Fixpoint nestedPairLength (np : NestedPair) : nat :=
-    match np with
-    | singl => 0
-    | nest _ np' => S (nestedPairLength np')
-    end.
-
-  Lemma tupleToNestedPair_keeps_length : forall n (t : Tuple n),
-      nestedPairLength (tupleToNestedPair t) = n.
-  Proof.
-    intros n. induction n; intros t.
-    - (* Case n = 0 *)
-      simpl. reflexivity.
-    - (* Case n = S n' *)
-      simpl. f_equal. apply IHn.
-  Qed.
-
-  Definition convertTuplesNetToNestedPairsNet {n: nat} (tn: nat -> Tuple n) : nat -> NestedPair :=
-    fun l => tupleToNestedPair (tn l).
-End ConversionProof.
-*)
+Compute testTuplesNet 0.
 
 
