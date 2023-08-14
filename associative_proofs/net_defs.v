@@ -15,6 +15,14 @@
 Ассоциация - это упорядоченная пара, состоящая из идентификатора кортежа и кортежа идентификаторов. Эта структура служит для отображения между идентификаторами и кортежами.
 Пустой кортеж представлен пустым множеством: () представлено как ∅.
 
+Гипотеза о сохранении глубины:
+H_depth: forall n: L, forall t: Tuple n, depth (tupleToNestedPair t) = n.
+Эта гипотеза утверждает, что глубина вложенной пары, полученной из кортежа, всегда равна длине кортежа.
+
+Гипотеза о взаимном обращении функций nestedPairToTuple и tupleToNestedPair:
+H_inverse: forall n: L, forall t: Tuple n, nestedPairToTuple n (tupleToNestedPair t) = t.
+Эта гипотеза утверждает, что применение nestedPairToTuple к результату tupleToNestedPair возвращает исходный кортеж.
+
 Гипотеза 1: Ассоциативная сеть вложенных упорядоченных пар может представлять любую ассоциативную сеть кортежей длины n.
 Гипотеза 2: Ассоциативная сеть дуплетов может представлять ассоциативную сеть вложенных упорядоченных пар, только в том случае, если введена специальная ссылка (l = 0) для обозначения пустого кортежа.
 Гипотеза 3: Ассоциативная сеть дуплетов может представлять любую ассоциативную сеть.
@@ -91,6 +99,21 @@ Definition nestedPairToTupleOption (n : L) (np : NestedPair) : option (Tuple n) 
 
 Definition pairsNetToTuplesNetOption {n: L} (f: NestedPairsNet) : L -> option (Tuple n) :=
   fun id => nestedPairToTupleOption n (f id).
+
+(* Лемма о сохранении глубины: *)
+Lemma depth_preserved : forall {l: L} (t: Tuple l), depth (tupleToNestedPair t) = l.
+Proof.
+  intros l. induction l as [| l' IH]; intros t.
+  - (* Базовый случай *)
+    simpl. reflexivity.
+  
+  - (* Шаг индукции *)
+    destruct t as [x t']. simpl.
+    destruct l'.
+    + simpl. reflexivity.
+    + simpl. f_equal. apply IH.
+Qed.
+
 
 Definition Hypothesis1 : Prop := 
   forall (n : L) (f : TuplesNet n), 
