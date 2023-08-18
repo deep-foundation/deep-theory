@@ -3,14 +3,16 @@
 #include <iostream>
 #include <sstream>
 
-std::pair<int, int> numToPair(int z) {
-    int w = floor((sqrt(8*z+1)-1)/2);
-    int y = z - (w*w + w) / 2;
-    int x = w - y;
-    return std::make_pair(x, y);
+template<typename T>
+std::pair<T, T> numToPair(T z) {
+    T w = floor((sqrt(8*z+1)-1)/2);
+    T y = z - (w*w + w) / 2;
+    T x = w - y;
+    return {x, y};
 }
 
-int pairToNum(int x, int y) {
+template<typename T>
+T pairToNum(T x, T y) {
     return ((x + y) * (x + y + 1) / 2) + y;
 }
 
