@@ -60,27 +60,28 @@ int main() {
     for (auto &p : test_pairs) {
         int num = pairToNum(p.first, p.second); 
         std::pair<int, int> pair = numToPair(num);
-        std::cout << "Номер пары (" << p.first << ", " << p.second << "): " << num << std::endl;
-        std::cout << "Пара из номера " << num << ": (" << pair.first << ", " << pair.second << ")" << std::endl;
+        std::cout << "Pair number (" << p.first << ", " << p.second << "): " << num << std::endl;
+        std::cout << "Pair from number " << num << ": (" << pair.first << ", " << pair.second << ")" << std::endl;
         
         // Проверяем, что преобразование работает верно
         if (pair != p) {
-            std::cout << "Ошибка: ожидалась пара (" << p.first << ", " << p.second << "), а было получено (" << pair.first << ", " << pair.second << ")\n";
+            std::cout << "Error: expected pair (" << p.first << ", " << p.second << "), but got (" << pair.first << ", " << pair.second << ")\n";
             return -1;
         }
     }
 
-    std::cout << "Входим в глубину" << std::endl;
+    std::cout << "Entering the deep" << std::endl;
 
-    std::cout << "Атомы:" << std::endl;
+    std::cout << "Atoms:" << std::endl;
 
     explainPair(0);
     explainPair(1);
+
+
+    std::cout << "Composites:" << std::endl;
+
     explainPair(2);
     explainPair(3);
-
-    std::cout << "Композиты:" << std::endl;
-
     explainPair(4);
     explainPair(5);
     explainPair(6);
@@ -91,6 +92,11 @@ int main() {
     std::cout << "Level 0: " << 2187 << std::endl;
     for (int i = 1; i <= 5; ++i) {
         std::cout << "Level " << i << ": " << recursivePrint(pair2187.first, pair2187.second, i) << std::endl;
+    }
+
+    for (int i = 0; i <= 8; ++i) {
+        auto pair = numToPair(i);
+        std::cout << i << " = " << recursivePrint(pair.first, pair.second, 0) << std::endl;
     }
 
     return 0;
