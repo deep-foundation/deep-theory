@@ -22,12 +22,25 @@ std::string printPair(const T1& first, const T2& second) {
   return oss.str();
 }
 
-std::string recursivePrint(int x, int y) {
-    if (x > 0 && y > 0) {
+std::string recursivePrint(int x, int y, int limit = 0) {
+    if (limit == 1) { // For limit=1, print pairs without going into recursion
+        return printPair(x, y);
+    }
+    if (x > 1 && y > 1) {
         auto pairX = numToPair(x);
         auto pairY = numToPair(y);
         std::ostringstream oss;
-        oss << "(" << recursivePrint(pairX.first, pairX.second) << ", " << recursivePrint(pairY.first, pairY.second) << ")" << ")";
+        oss << "(" << recursivePrint(pairX.first, pairX.second, limit-1) << ", " << recursivePrint(pairY.first, pairY.second, limit-1) << ")" << ")";
+        return oss.str();
+    } else if(x > 1) {
+        auto pairX = numToPair(x);
+        std::ostringstream oss;
+        oss << "(" << recursivePrint(pairX.first, pairX.second, limit-1) << ", " << y << ")" << ")";
+        return oss.str();
+    } else if(y > 1) {
+        auto pairY = numToPair(y);
+        std::ostringstream oss;
+        oss << "(" << x << ", " << recursivePrint(pairY.first, pairY.second, limit-1) << ")" << ")";
         return oss.str();
     } else {
         return printPair(x, y);
@@ -75,8 +88,10 @@ int main() {
     explainPair(8);
 
     auto pair2187 = numToPair(2187);
-    std::cout << printPair(pair2187.first, pair2187.second) << std::endl;
-    std::cout <<  recursivePrint(pair2187.first, pair2187.second) << std::endl;
+    std::cout << "Level 0: " << 2187 << std::endl;
+    for (int i = 1; i <= 5; ++i) {
+        std::cout << "Level " << i << ": " << recursivePrint(pair2187.first, pair2187.second, i) << std::endl;
+    }
 
     return 0;
 }
