@@ -5,8 +5,7 @@
 
 std::pair<int, int> numToPair(int z) {
     int w = floor((sqrt(8*z+1)-1)/2);
-    int t = (w*w + w) / 2;
-    int y = z - t;
+    int y = z - (w*w + w) / 2;
     int x = w - y;
     return std::make_pair(x, y);
 }
@@ -50,18 +49,18 @@ std::string recursivePrint(int x, int y, int limit = 0) {
 void explainPair(int x) {
     auto pair = numToPair(x);
     auto num = pairToNum(pair.first, pair.second);
-    std::cout << printPair(pair.first, pair.second) << " = " << num << std::endl;  
+    std::cout << printPair(pair.first, pair.second) << " ↔ " << num << std::endl;  
 }
 
 int main() {
-    // Тестовые пары
+    // Test pairs
     std::pair<int, int> test_pairs[] = { {0, 0}, {1, 1}, {1, 2}, {2, 2}, {10, 10}, {23, 42}, {42, 23} };
 
     for (auto &p : test_pairs) {
         int num = pairToNum(p.first, p.second); 
         std::pair<int, int> pair = numToPair(num);
-        std::cout << "Pair number (" << p.first << ", " << p.second << "): " << num << std::endl;
-        std::cout << "Pair from number " << num << ": (" << pair.first << ", " << pair.second << ")" << std::endl;
+        std::cout << "(" << p.first << ", " << p.second << ") ↦ " << num << std::endl;
+        std::cout << "" << num << " ↦ (" << pair.first << ", " << pair.second << ")" << std::endl;
         
         // Проверяем, что преобразование работает верно
         if (pair != p) {
@@ -96,7 +95,7 @@ int main() {
 
     for (int i = 0; i <= 8; ++i) {
         auto pair = numToPair(i);
-        std::cout << i << " = " << recursivePrint(pair.first, pair.second, 0) << std::endl;
+        std::cout << i << " ↔ " << recursivePrint(pair.first, pair.second, 0) << std::endl;
     }
 
     return 0;
