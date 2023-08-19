@@ -1,72 +1,68 @@
-#include <utility>
 #include <cmath>
+#include <format>
 #include <iostream>
-#include <sstream>
+#include <utility>
 
-template<typename T>
-std::pair<T, T> numToPair(T z) {
-    T w = floor((sqrt(8*z+1)-1)/2);
-    T y = z - (w*w + w) / 2;
+template <typename... Args>
+void println(std::format_string<Args...> fmt, Args&&... args) {
+    std::cout << std::format(fmt, std::forward<Args>(args)...) << std::endl;
+}
+
+template <typename T>
+auto numToPair(T z) -> std::pair<T, T> {
+    T w = floor((sqrt(8 * z + 1) - 1) / 2);
+    T y = z - (w * w + w) / 2;
     T x = w - y;
     return {x, y};
 }
 
-template<typename T>
-T pairToNum(T x, T y) {
+template <typename T, typename U>
+struct std::formatter<std::pair<T, U>> : std::formatter<std::string_view> {
+    auto format(const std::pair<T, U>& p, format_context& cx) const {
+        return std::format_to(cx.out(), "({}, {})", p.first, p.second);
+    }
+};
+
+template <typename T>
+auto pairToNum(std::pair<T, T> pair) -> T {
+    auto [x, y] = pair;
     return ((x + y) * (x + y + 1) / 2) + y;
-}
-
-template<typename T1, typename T2>
-std::string printPair(const T1& first, const T2& second) {
-  std::ostringstream oss;
-  oss << "(" << first << ", " << second << ")";
-  return oss.str();
-}
-
-std::string recursivePrint(int x, int y, int limit = 0) {
-    if (limit == 1) { // For limit=1, print pairs without going into recursion
-        return printPair(x, y);
-    }
-    if (x > 1 && y > 1) {
-        auto pairX = numToPair(x);
-        auto pairY = numToPair(y);
-        std::ostringstream oss;
-        oss << "(" << recursivePrint(pairX.first, pairX.second, limit-1) << ", " << recursivePrint(pairY.first, pairY.second, limit-1) << ")" << ")";
-        return oss.str();
-    } else if(x > 1) {
-        auto pairX = numToPair(x);
-        std::ostringstream oss;
-        oss << "(" << recursivePrint(pairX.first, pairX.second, limit-1) << ", " << y << ")" << ")";
-        return oss.str();
-    } else if(y > 1) {
-        auto pairY = numToPair(y);
-        std::ostringstream oss;
-        oss << "(" << x << ", " << recursivePrint(pairY.first, pairY.second, limit-1) << ")" << ")";
-        return oss.str();
-    } else {
-        return printPair(x, y);
-    }
 }
 
 void explainPair(int x) {
     auto pair = numToPair(x);
-    auto num = pairToNum(pair.first, pair.second);
-    std::cout << printPair(pair.first, pair.second) << " ↔ " << num << std::endl;  
+    auto num = pairToNum(pair);
+    println("{} ↔ {}", std::move(pair), pairToNum(pair));
+}
+
+auto recursivePrint(std::pair<int, int> pair, int limit = 0) -> std::string {
+    auto format = [](auto&& t) {
+        return std::format("{}", t);
+    };
+    if (limit == 1) {  // For limit=1, print pairs without going into recursion
+        return format(pair);
+    }
+
+    auto [x, y] = pair;
+    auto a = x > 1 ? recursivePrint(numToPair(x), limit - 1) : format(x);
+    auto b = y > 1 ? recursivePrint(numToPair(y), limit - 1) : format(y);
+
+    return format(std::pair{a, b});
 }
 
 int main() {
     // Test pairs
-    std::pair<int, int> test_pairs[] = { {0, 0}, {1, 1}, {1, 2}, {2, 2}, {10, 10}, {23, 42}, {42, 23} };
+    std::pair<int, int> test_pairs[] = {{0, 0},   {1, 1},   {1, 2},  {2, 2},
+                                        {10, 10}, {23, 42}, {42, 23}};
 
-    for (auto &p : test_pairs) {
-        int num = pairToNum(p.first, p.second); 
+    for (auto p : test_pairs) {
+        int num = pairToNum(p);
         std::pair<int, int> pair = numToPair(num);
-        std::cout << "(" << p.first << ", " << p.second << ") ↦ " << num << std::endl;
-        std::cout << "" << num << " ↦ (" << pair.first << ", " << pair.second << ")" << std::endl;
-        
+        println("{0} ↦ {1} | {1} ↦ {0}", p, num);
+
         // Проверяем, что преобразование работает верно
         if (pair != p) {
-            std::cout << "Error: expected pair (" << p.first << ", " << p.second << "), but got (" << pair.first << ", " << pair.second << ")\n";
+            println("Error: expected pair {}, but got {}", p, pair); // it's a panic???
             return -1;
         }
     }
@@ -77,7 +73,6 @@ int main() {
 
     explainPair(0);
     explainPair(1);
-
 
     std::cout << "Composites:" << std::endl;
 
@@ -91,14 +86,11 @@ int main() {
 
     auto pair2187 = numToPair(2187);
     std::cout << "Level 0: " << 2187 << std::endl;
-    for (int i = 1; i <= 5; ++i) {
-        std::cout << "Level " << i << ": " << recursivePrint(pair2187.first, pair2187.second, i) << std::endl;
+    for (int i = 1; i <= 5; i++) {
+        println("Level {}: {}", i, recursivePrint(pair2187, i));
     }
 
-    for (int i = 0; i <= 8; ++i) {
-        auto pair = numToPair(i);
-        std::cout << i << " ↔ " << recursivePrint(pair.first, pair.second, 0) << std::endl;
+    for (int i = 0; i <= 8; i++) {
+        println("{} ↔ {}", i, recursivePrint(numToPair(i), 0));
     }
-
-    return 0;
 }
