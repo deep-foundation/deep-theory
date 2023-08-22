@@ -3,11 +3,6 @@
 #include <iostream>
 #include <utility>
 
-template <typename... Args>
-void println(std::format_string<Args...> fmt, Args&&... args) {
-    std::cout << std::format(fmt, std::forward<Args>(args)...) << std::endl;
-}
-
 template <typename T>
 auto numToPair(T z) -> std::pair<T, T> {
     T w = floor((sqrt(8 * z + 1) - 1) / 2);
@@ -16,18 +11,23 @@ auto numToPair(T z) -> std::pair<T, T> {
     return {x, y};
 }
 
+template <typename T>
+auto pairToNum(std::pair<T, T> pair) -> T {
+    auto [x, y] = pair;
+    return ((x + y) * (x + y + 1) / 2) + y;
+}
+
+template <typename... Args>
+void println(std::format_string<Args...> fmt, Args&&... args) {
+    std::cout << std::format(fmt, std::forward<Args>(args)...) << std::endl;
+}
+
 template <typename T, typename U>
 struct std::formatter<std::pair<T, U>> : std::formatter<std::string_view> {
     auto format(const std::pair<T, U>& p, format_context& cx) const {
         return std::format_to(cx.out(), "({}, {})", p.first, p.second);
     }
 };
-
-template <typename T>
-auto pairToNum(std::pair<T, T> pair) -> T {
-    auto [x, y] = pair;
-    return ((x + y) * (x + y + 1) / 2) + y;
-}
 
 void explainPair(int x) {
     auto pair = numToPair(x);
