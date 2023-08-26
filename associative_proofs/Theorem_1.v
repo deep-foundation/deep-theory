@@ -24,17 +24,23 @@
 Ассоциация - это упорядоченная пара, состоящая из идентификатора кортежа и кортежа идентификаторов. Эта структура служит для отображения между идентификаторами и кортежами.
 Пустой кортеж представлен пустым множеством: () представлено как ∅.
 
-Гипотеза 1: после преобразования ассоциативной сети кортежей фиксированной длины n
- в ассоциативную сеть вложенных упорядоченных пар, а затем обратно в ассоциативную сеть кортежей длины n,
- мы получим исходную ассоциативную сеть кортежей.
+  Теорема обертывания и восстановления ассоциативной сети кортежей:
 
-Гипотеза 2: Для ассоциативной сети дуплетов dupletNet: DupletNet
- существует эквивалентная сеть вложенных упорядоченных пар nestedPairsNet: NestedPairsNet,
- такая что для каждого идентификатора l: L:
-Если dupletNet l = (l1, l0), тогда nestedPairsNet l = Doublet l1 Empty.
-Если dupletNet l = (l1, l2) и l2 ≠ l0, тогда nestedPairsNet l = Doublet l1 (Doublet l2 Empty).
+Пусть дана ассоциативная сеть кортежей длины n, обозначенная как netⁿ : L → Tⁿ.
 
-Гипотеза 3: Ассоциативная сеть дуплетов может представлять любую ассоциативную сеть.
+Определим операцию отображения этой сети в ассоциативную сеть вложенных упорядоченных пар net : L → P, где P = {(∅,∅) | (l,∅) | (l1,l2) : l, l1, l2 ∈ L}.
+
+Затем определим обратное отображение из ассоциативной сети вложенных упорядоченных пар обратно в ассоциативную сеть кортежей длины n.
+
+  Теорема утверждает:
+
+Для любой ассоциативной сети кортежей длины n, netⁿ, применение операции преобразования в ассоциативную сеть вложенных упорядоченных пар и обратное преобразование обратно в ассоциативную сеть кортежей длины n обеспечивает восстановление исходной сети netⁿ.
+
+То есть, если мы преобразуем netⁿ в net и потом обратно в netⁿ, то мы получим исходную ассоциативную сеть кортежей netⁿ. Иначе говоря:
+
+    ∀ netⁿ : L → Tⁿ, преобразованиеобратно(преобразованиевперед(netⁿ)) = netⁿ.
+
+Это утверждение требуется доказать.
 *)
 
 (* Определяем базовый тип идентификаторов *)
@@ -56,29 +62,6 @@ Fixpoint depth (p : NestedPair) : nat :=
   | Empty => 0
   | Doublet _ p' => S (depth p')
   end.
-
-Section DupletNets.  
-  (* Определение дуплета *)
-  Definition Duplet := prod L L.
-
-  (* Определение ассоциативной сети дуплетов *)
-  Definition DupletNet : Type := L -> Duplet.
-End DupletNets.
-
-Fixpoint nestedPairsNet_to_dupletNetAux (nestedPairsNet: NestedPairsNet) (l: L) (counter: L): DupletNet :=
-  fun l' =>
-  match n with
-  | 0 =>  (l0, l0)  (* Here we suppose, that depth of NestedPair is limited by number n *)
-  | S n' => match nestedPairsNet l with
-            | Empty => if l' =? l then (l0, l0)   (* Here we suppose, that l0 - is correct identifier for Empty *)
-                                 else (nestedPairsNet_to_dupletNetAux nestedPairsNet n' l' (counter + 1)) l'
-            | Doublet l1 pair1 => if l' =? l then (l1, counter)
-                                              else (nestedPairsNet_to_dupletNetAux nestedPairsNet n' counter (counter + 1)) l'
-            end
-  end.
-
-Definition nestedPairsNet_to_dupletNet (nestedPairsNet: NestedPairsNet) (n: nat): DupletNet :=
-  fun l => (nestedPairsNet_to_dupletNetAux nestedPairsNet n l l) l.
 
 Section TuplesNets.
   (* Определение кортежа фиксированной длины n *)
@@ -152,8 +135,8 @@ Qed.
 Definition nets_equiv {n: nat} (net1: TuplesNet n) (net2: TuplesNet n) : Prop :=
   forall id, net1 id = net2 id.
 
-(* Лемма - эквивалентность после преобразования *)
-Lemma nets_equiv_after_transforms : forall {n: nat} (net: TuplesNet n),
+(* Теорема обертывания и восстановления ассоциативной сети кортежей *)
+Theorem nets_equiv_after_transforms : forall {n: nat} (net: TuplesNet n),
   nets_equiv net (fun id => match nestedPairToTupleOption n ((tuplesNetToPairsNet net) id) with
                             | Some t => t
                             | None   => net id
