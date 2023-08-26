@@ -24,18 +24,28 @@
 Ассоциация - это упорядоченная пара, состоящая из идентификатора кортежа и кортежа идентификаторов. Эта структура служит для отображения между идентификаторами и кортежами.
 Пустой кортеж представлен пустым множеством: () представлено как ∅.
 
-Гипотеза 2: Для ассоциативной сети дуплетов dupletNet: DupletNet
- существует эквивалентная сеть вложенных упорядоченных пар nestedPairsNet: NestedPairsNet,
- такая что для каждого идентификатора l: L:
-Если dupletNet l = (l1, l0), тогда nestedPairsNet l = Doublet l1 Empty.
-Если dupletNet l = (l1, l2) и l2 ≠ l0, тогда nestedPairsNet l = Doublet l1 (Doublet l2 Empty).
+Теорема 2: Пусть n - фиксированное натуральное число, и пусть Tn является множеством кортежей идентификаторов длины n.
+ Введем специальный идентификатор l0, которому соответствует пустой дуплет.
+ Тогда существует функция f : Tn → P, которая биективно отображает кортеж идентификаторов в вложенную пару,
+ и существует функция g : P → D, которая биективно отображает вложенную пару в ассоциативную сеть дуплетов.
+ Здесь P - множество вложенных пар, D - сеть дуплетов. 
 
-Гипотеза 3: Ассоциативная сеть дуплетов может представлять любую ассоциативную сеть.
+Словами, это означает, что каждый кортеж идентификаторов фиксированной длины n может быть представлен вложенной парой,
+ и каждая вложенная пара может быть представлена ассоциативной сетью дуплетов.
+ Отображение в обоих случаях является взаимно однозначным, то есть уникальным в обе стороны.
+
 *)
 
-(* Определяем базовый тип идентификаторов *)
+(* Определяем базовый тип идентификаторов кортежей *)
 Definition L := nat.
 Definition l0 := 0.
+
+(* Определение кортежа идентификаторов фиксированной длины n *)
+Fixpoint Tuple (n: nat) : Type :=
+  match n with
+  | 0 => unit
+  | S n' => prod L (Tuple n')
+  end.
 
 Section NestedPairsNets.
   (* Определение вложенной пары с переменной длиной *)
@@ -43,7 +53,7 @@ Section NestedPairsNets.
   | Empty: NestedPair
   | Doublet: L -> (NestedPair) -> NestedPair.
 
-  (* Определение ассоциативной сети с вложенными парами *)
+  (* Определение ассоциативной сети вложенных упорядоченных пар *)
   Definition NestedPairsNet : Type := L -> NestedPair. 
 End NestedPairsNets.
 
@@ -61,33 +71,6 @@ Section DupletNets.
   Definition DupletNet : Type := L -> Duplet.
 End DupletNets.
 
-Fixpoint nestedPairsNet_to_dupletNetAux (nestedPairsNet: NestedPairsNet) (l: L) (counter: L): DupletNet :=
-  fun l' =>
-  match n with
-  | 0 =>  (l0, l0)  (* Here we suppose, that depth of NestedPair is limited by number n *)
-  | S n' => match nestedPairsNet l with
-            | Empty => if l' =? l then (l0, l0)   (* Here we suppose, that l0 - is correct identifier for Empty *)
-                                 else (nestedPairsNet_to_dupletNetAux nestedPairsNet n' l' (counter + 1)) l'
-            | Doublet l1 pair1 => if l' =? l then (l1, counter)
-                                              else (nestedPairsNet_to_dupletNetAux nestedPairsNet n' counter (counter + 1)) l'
-            end
-  end.
-
-Definition nestedPairsNet_to_dupletNet (nestedPairsNet: NestedPairsNet) (n: nat): DupletNet :=
-  fun l => (nestedPairsNet_to_dupletNetAux nestedPairsNet n l l) l.
-
-Section TuplesNets.
-  (* Определение кортежа фиксированной длины n *)
-  Fixpoint Tuple (n: nat) : Type :=
-    match n with
-    | 0 => unit
-    | S n' => prod L (Tuple n')
-    end.
-
-  (* Определение ассоциативной сети кортежей фиксированной длины n *)
-  Definition TuplesNet (n: nat) : Type := L -> Tuple n.
-End TuplesNets.
-
 Fixpoint tupleToNestedPair {n: nat} : Tuple n -> NestedPair :=
   match n with
   | 0 => fun _ => Empty
@@ -97,9 +80,6 @@ Fixpoint tupleToNestedPair {n: nat} : Tuple n -> NestedPair :=
         | (f, rest) => Doublet f (tupleToNestedPair rest)
         end
   end.
-
-Definition tuplesNetToPairsNet {n: nat} (f: TuplesNet n) : NestedPairsNet:=
-  fun id => tupleToNestedPair (f id).
 
 (* Лемма о сохранении глубины: *)
 Lemma depth_preserved : forall {l: nat} (t: Tuple l), depth (tupleToNestedPair t) = l.
@@ -125,15 +105,6 @@ Fixpoint nestedPairToTupleOption (n: nat) (p: NestedPair) : option (Tuple n) :=
   | _, _ => None
   end.
 
-Definition pairsNetToTuplesNetOption {n: nat} (f: NestedPairsNet) : L -> option (Tuple n) :=
-  fun id => nestedPairToTupleOption n (f id).
-
-Definition pairsNetToTuplesNet { n: nat } (net: NestedPairsNet) (default: Tuple n) : TuplesNet n :=
-  fun id => match nestedPairToTupleOption n (net id) with
-            | Some t => t
-            | None => default
-            end.
-
 (* Лемма о взаимном обращении функций nestedPairToTupleOption и tupleToNestedPair *)
 Lemma H_inverse: forall n: nat, forall t: Tuple n, nestedPairToTupleOption n (tupleToNestedPair t) = Some t.
 Proof.
@@ -145,23 +116,37 @@ Proof.
     rewrite IH. reflexivity.
 Qed.
 
-Definition nets_equiv {n: nat} (net1: TuplesNet n) (net2: TuplesNet n) : Prop :=
-  forall id, net1 id = net2 id.
+(* Преобразование вложенной пары в DupletNet *)
+Fixpoint nestedPairToDupletNet (p: NestedPair) (l: L) : DupletNet :=
+  match p with
+  | Empty => (fun _ => (l, l0))
+  | Doublet l' p' => 
+      fun x => if (x =? l) then (l, l') else (nestedPairToDupletNet p' l) x
+  end.
 
-(* Лемма - эквивалентность после преобразования *)
-Lemma nets_equiv_after_transforms : forall {n: nat} (net: TuplesNet n),
-  nets_equiv net (fun id => match nestedPairToTupleOption n ((tuplesNetToPairsNet net) id) with
-                            | Some t => t
-                            | None   => net id
-                            end).
+(* Преобразование DupletNet во вложенную пару *)
+Fixpoint dupletNetToNestedPair (net: DupletNet) (l: L) : NestedPair :=
+  match net l with
+  | (l', l0) => Empty
+  | (l', _) => Doublet l' (dupletNetToNestedPair net l')
+  end.
+
+(* Лемма о взаимном обращении функций nestedPairToDupletNet и dupletNetToNestedPair *)
+Lemma H_inverse_dupletNet: forall p: NestedPair, forall l: L, dupletNetToNestedPair (nestedPairToDupletNet p l) l = p.
 Proof.
-  intros n net id.
-  unfold tuplesNetToPairsNet.
-  simpl.
-  rewrite H_inverse.
-  reflexivity.
+  intros p. induction p as [| l' p' IH]; intros l.
+  - (* Базовый случай *)
+    simpl. reflexivity.
+  - (* Шаг индукции *)
+    simpl. rewrite IH. reflexivity.
 Qed.
 
+(* Теорема 2 *)
+Theorem Theorem2: forall n: nat, forall t: Tuple n, forall l: L, dupletNetToNestedPair (nestedPairToDupletNet (tupleToNestedPair t) l) l = tupleToNestedPair t.
+Proof.
+  intros n t l.
+  apply H_inverse_dupletNet.
+Qed.
 
 
 
