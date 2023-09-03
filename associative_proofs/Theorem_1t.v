@@ -23,42 +23,102 @@
  где количество индексов соответствует количеству элементов кортежа.
 Ассоциация - это упорядоченная пара, состоящая из идентификатора кортежа и кортежа идентификаторов. Эта структура служит для отображения между идентификаторами и кортежами.
 Пустой кортеж представлен пустым множеством: () представлено как ∅.
-
-  Теорема обертывания и восстановления ассоциативной сети кортежей:
-
-Пусть дана ассоциативная сеть кортежей длины n, обозначенная как netⁿ : L → Tⁿ.
-
-Определим операцию отображения этой сети в ассоциативную сеть вложенных упорядоченных пар net : L → P, где P = {(∅,∅) | (l,∅) | (l1,l2) : l, l1, l2 ∈ L}.
-
-Затем определим обратное отображение из ассоциативной сети вложенных упорядоченных пар обратно в ассоциативную сеть кортежей длины n.
-
-  Теорема утверждает:
-
-Для любой ассоциативной сети кортежей длины n, netⁿ, применение операции преобразования в ассоциативную сеть вложенных упорядоченных пар и обратное преобразование обратно в ассоциативную сеть кортежей длины n обеспечивает восстановление исходной сети netⁿ.
-
-То есть, если мы преобразуем netⁿ в net и потом обратно в netⁿ, то мы получим исходную ассоциативную сеть кортежей netⁿ. Иначе говоря:
-
-    ∀ netⁿ : L → Tⁿ, преобразованиеобратно(преобразованиевперед(netⁿ)) = netⁿ.
-
-Это утверждение требуется доказать.
 *)
 
 (* Определяем базовый тип идентификаторов *)
 Definition L := nat.
 Definition l0 := 0.
 
+Inductive prod (A B : Type) : Type :=
+| pair : A -> B -> prod A B.
+
+Inductive list (A : Type) : Type :=
+ | nil : list A
+ | cons : A -> list A -> list A.
+
+Arguments nil {A}.
+Arguments cons {A} a l.
+
+Declare Scope list_scope.
+Delimit Scope list_scope with list.
+Bind Scope list_scope with list.
+
+Infix "::" := cons (at level 60, right associativity) : list_scope.
+
+Register list as core.list.type.
+Register nil as core.list.nil.
+Register cons as core.list.cons.
+
+Local Open Scope list_scope.
+
+Definition length (A : Type) : list A -> nat :=
+  fix length l :=
+  match l with
+   | nil => O
+   | _ :: l' => S (length l')
+  end.
+
+Inductive vec (A : Type) : nat -> Type :=
+| vnil : vec A 0
+| vcons : forall (h:A) (n:nat), vec A n -> vec A (S n).
+
+Fixpoint vec_length {A : Type} {n : nat} (v : vec A n) : nat :=
+match v with
+| vnil => 0
+| vcons _ _ t => S (vec_length t)
+end.
+
+Definition my_vec : vec nat 4 := vcons 1 (vcons 2 (vcons 3 (vcons 4 vnil))).
+
+Compute vec_length my_vec. (* выводит 4 *)
+
+
+Inductive tuple (A : Type) : nat -> Type :=
+| tnil : tuple A 0
+| tcons {n : nat} : prod A (tuple A n) -> tuple A (S n).
+
+Fixpoint tuple_length {A : Type} {n : nat} (t : tuple A n) : nat :=
+match t with
+| tnil _ => 0
+| tcons p => S (tuple_length (snd p))
+end.
+
+Definition my_tuple : tuple nat 3 := tcons (1, tcons (2, tcons (3, tnil))).
+
+Compute tuple_length my_tuple. (* Выводит 3 *)
+
+Fixpoint tuple_n (A : Type) (n : nat) : tuple A :=
+match n with
+| O => TupleNil A
+| S n' => TupleCons A (default:A) (tuple_n A n')
+end.
+
 Section NestedPairsNets.
   (* Определение вложенной пары с переменной длиной *)
   Inductive NestedPair: Type :=
-  | Empty: NestedPair
-  | Doublet: L -> (NestedPair) -> NestedPair.
+    | Empty: NestedPair
+    | Doublet: L -> (NestedPair) -> NestedPair.
 
   (* Определение ассоциативной сети с вложенными парами *)
   Fixpoint NestedPairsNet (s: nat) : Type :=
     match s with
     | 0 => unit
-    | S s' => prod NestedPair (NestedPairsNet s')
+    | S s' => (NestedPair * (NestedPairsNet s'))
     end.
+
+  (* Определение селектора вложенной пары из ассоциативной сети с вложенными парами *)
+  Fixpoint NestedPairsNetSelect {s: nat} (net: NestedPairsNet s) (l: L) : NestedPair :=
+match s with
+| 0 => Empty
+| S s' =>
+match net with
+| (p, rest) =>
+match l with
+| 0 => p
+| _ => NestedPairsNetSelect rest (pred l)
+end
+end
+end.
 End NestedPairsNets.
 
 Fixpoint depth (p : NestedPair) : nat :=
@@ -81,6 +141,9 @@ Section TuplesNets.
     | 0 => unit
     | S s' => prod (Tuple n) (TuplesNet s' n)
     end.
+
+  (* Определение ассоциативной сети кортежей фиксированной длины n *)
+  Definition TuplesNetSelect (n: nat) : Type := L -> Tuple n.
 End TuplesNets.
 
 Fixpoint tupleToNestedPair {n: nat} : Tuple n -> NestedPair :=
@@ -143,7 +206,25 @@ Qed.
 Definition nets_equiv {n: nat} (net1: TuplesNet n) (net2: TuplesNet n) : Prop :=
   forall id, net1 id = net2 id.
 
-(* Теорема обертывания и восстановления ассоциативной сети кортежей *)
+(*
+ Теорема обертывания и восстановления ассоциативной сети кортежей:
+
+Пусть дана ассоциативная сеть кортежей длины n, обозначенная как netⁿ : L → Tⁿ.
+
+Определим операцию отображения этой сети в ассоциативную сеть вложенных упорядоченных пар net : L → P, где P = {(∅,∅) | (l,∅) | (l1,l2) : l, l1, l2 ∈ L}.
+
+Затем определим обратное отображение из ассоциативной сети вложенных упорядоченных пар обратно в ассоциативную сеть кортежей длины n.
+
+  Теорема утверждает:
+
+Для любой ассоциативной сети кортежей длины n, netⁿ, применение операции преобразования в ассоциативную сеть вложенных упорядоченных пар и обратное преобразование обратно в ассоциативную сеть кортежей длины n обеспечивает восстановление исходной сети netⁿ.
+
+То есть, если мы преобразуем netⁿ в net и потом обратно в netⁿ, то мы получим исходную ассоциативную сеть кортежей netⁿ. Иначе говоря:
+
+    ∀ netⁿ : L → Tⁿ, преобразованиеобратно(преобразованиевперед(netⁿ)) = netⁿ.
+
+Это утверждение требуется доказать на coq.
+ *)
 Theorem nets_equiv_after_transforms : forall {n: nat} (net: TuplesNet n),
   nets_equiv net (fun id => match nestedPairToTupleOption n ((tuplesNetToPairsNet net) id) with
                             | Some t => t
