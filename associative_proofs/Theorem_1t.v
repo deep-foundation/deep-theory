@@ -38,18 +38,7 @@ Inductive list (A : Type) : Type :=
 
 Arguments nil {A}.
 Arguments cons {A} a l.
-
-Declare Scope list_scope.
-Delimit Scope list_scope with list.
-Bind Scope list_scope with list.
-
-Infix "::" := cons (at level 60, right associativity) : list_scope.
-
-Register list as core.list.type.
-Register nil as core.list.nil.
-Register cons as core.list.cons.
-
-Local Open Scope list_scope.
+Infix "::" := cons (at level 60, right associativity).
 
 Definition length (A : Type) : list A -> nat :=
   fix length l :=
@@ -62,16 +51,27 @@ Inductive vec (A : Type) : nat -> Type :=
 | vnil : vec A 0
 | vcons : forall (h:A) (n:nat), vec A n -> vec A (S n).
 
+Arguments vnil {A}.
+Arguments vcons {A} h n.
+
 Fixpoint vec_length {A : Type} {n : nat} (v : vec A n) : nat :=
 match v with
 | vnil => 0
 | vcons _ _ t => S (vec_length t)
 end.
 
-Definition my_vec : vec nat 4 := vcons 1 (vcons 2 (vcons 3 (vcons 4 vnil))).
+Definition v : vec nat 0 := vnil.
+Compute vec_length v. (* должно вернуть 0 *)
 
-Compute vec_length my_vec. (* выводит 4 *)
+Definition v1 : vec nat 5 := vcons 1 (vcons 2 (vcons 3 (vcons 4 (vcons 5 vnil)))). (* вектор [1,2,3,4,5] *)
+Definition v2 : vec bool 3 := vcons true (vcons false (vcons false vnil)). (* вектор [true,false,false] *)
+Definition v3 : vec nat 0 := vnil. (* пустой вектор *)
+Definition v4 := vcons "hello" (vcons "world" vnil). (* вектор ["hello","world"] *)
 
+Compute vec_length v1. (* должно вернуть 5 *)
+Compute vec_length v2. (* должно вернуть 3 *)
+Compute vec_length v3. (* должно вернуть 0 *)
+Compute vec_length v4. (* должно вернуть 2 *)
 
 Inductive tuple (A : Type) : nat -> Type :=
 | tnil : tuple A 0
