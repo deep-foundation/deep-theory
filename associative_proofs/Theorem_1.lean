@@ -8,7 +8,7 @@
  ⊆ обозначает 'это подмножество',
  а A - множество всех ассоциаций.
  Это говорит о том, что все упорядоченные пары, полученные от функций netⁿ, являются подмножеством A.
-Ассоциативная сеть кортежей фиксированной длины n из семейства функций {netⁿ},
+Ассоциативная сеть кортежей длины n из семейства функций {netⁿ},
  netⁿ : L → Tn отображает идентификатор l из множества L в кортеж идентификаторов длины n,
  который принадлежит множеству Tn.
  'n' в netⁿ указывает на то, что функция возвращает кортежи, содержащие n идентификаторов. 
@@ -24,101 +24,73 @@
 Ассоциация - это упорядоченная пара, состоящая из идентификатора кортежа и кортежа идентификаторов. Эта структура служит для отображения между идентификаторами и кортежами.
 Пустой кортеж представлен пустым множеством: () представлено как ∅.
 *)
+Require Import Coq.Init.Datatypes.
+Require Import Coq.Lists.List.
+Require Import Coq.Vectors.Vector.
+
+(* Примеры использования:
+Definition my_list : list A := cons a (cons b (cons c nil)).
+Definition my_vec : vec A n := @Vector.const A n a.
+*)
 
 (* Определяем базовый тип идентификаторов *)
 Definition L := nat.
 Definition l0 := 0.
 
-Inductive prod (A B : Type) : Type :=
-| pair : A -> B -> prod A B.
-
-Inductive list (A : Type) : Type :=
- | nil : list A
- | cons : A -> list A -> list A.
-
-Arguments nil {A}.
-Arguments cons {A} a l.
-Infix "::" := cons (at level 60, right associativity).
-
-Definition length (A : Type) : list A -> nat :=
-  fix length l :=
-  match l with
-   | nil => O
-   | _ :: l' => S (length l')
-  end.
-
-Inductive vec (A : Type) : nat -> Type :=
-| vnil : vec A 0
-| vcons : forall (h:A) (n:nat), vec A n -> vec A (S n).
-
-Arguments vnil {A}.
-Arguments vcons {A} h n.
-
-Fixpoint vec_length {A : Type} {n : nat} (v : vec A n) : nat :=
-match v with
-| vnil => 0
-| vcons _ _ t => S (vec_length t)
-end.
-
-Definition v : vec nat 0 := vnil.
-Compute vec_length v. (* должно вернуть 0 *)
-
-Definition v1 : vec nat 5 := vcons 1 (vcons 2 (vcons 3 (vcons 4 (vcons 5 vnil)))). (* вектор [1,2,3,4,5] *)
-Definition v2 : vec bool 3 := vcons true (vcons false (vcons false vnil)). (* вектор [true,false,false] *)
-Definition v3 : vec nat 0 := vnil. (* пустой вектор *)
-Definition v4 := vcons "hello" (vcons "world" vnil). (* вектор ["hello","world"] *)
-
-Compute vec_length v1. (* должно вернуть 5 *)
-Compute vec_length v2. (* должно вернуть 3 *)
-Compute vec_length v3. (* должно вернуть 0 *)
-Compute vec_length v4. (* должно вернуть 2 *)
-
-Inductive tuple (A : Type) : nat -> Type :=
-| tnil : tuple A 0
-| tcons {n : nat} : prod A (tuple A n) -> tuple A (S n).
-
-Fixpoint tuple_length {A : Type} {n : nat} (t : tuple A n) : nat :=
-match t with
-| tnil _ => 0
-| tcons p => S (tuple_length (snd p))
-end.
-
-Definition my_tuple : tuple nat 3 := tcons (1, tcons (2, tcons (3, tnil))).
-
-Compute tuple_length my_tuple. (* Выводит 3 *)
-
-Fixpoint tuple_n (A : Type) (n : nat) : tuple A :=
-match n with
-| O => TupleNil A
-| S n' => TupleCons A (default:A) (tuple_n A n')
-end.
-
 Section NestedPairsNets.
   (* Определение вложенной пары с переменной длиной *)
   Inductive NestedPair: Type :=
-    | Empty: NestedPair
-    | Doublet: L -> (NestedPair) -> NestedPair.
+  | Empty: NestedPair
+  | Doublet: L -> (NestedPair) -> NestedPair.
 
-  (* Определение ассоциативной сети с вложенными парами *)
-  Fixpoint NestedPairsNet (s: nat) : Type :=
-    match s with
-    | 0 => unit
-    | S s' => (NestedPair * (NestedPairsNet s'))
+  (* Опреледение списка из NestedPair *)
+  Definition NestedPairsList : Type := list NestedPair.
+
+  (* Определение интерфейса ассоциативной сети с вложенными парами *)
+  Definition INestedPairsNet : Type := L -> NestedPair. 
+
+  (* Определение функции доступа к элементу с номером i в списке *)
+  Fixpoint nth_nested_pair (n : nat) (np_list : NestedPairsList) : option NestedPair :=
+  match n, np_list with
+    | 0, np :: _ => Some np
+    | S m, _ :: np_list' => nth_nested_pair m np_list'
+    | _, nil => None
+  end.
+
+  (* Определение интерфейса ассоциативной сети с вложенными парами на основе list *)
+  Definition NestedPairsNetList : Type := list (L * list L).
+  Definition IDoubletNetList : L -> list L :=
+    fix f i (l : NestedPairsNetList) :=
+    match l with
+      | nil _ => nil
+      | cons (j, ll) l' => if L.eqb i j then ll else f i l'
     end.
 
-  (* Определение селектора вложенной пары из ассоциативной сети с вложенными парами *)
-  Fixpoint NestedPairsNetSelect {s: nat} (net: NestedPairsNet s) (l: L) : NestedPair :=
-match s with
-| 0 => Empty
-| S s' =>
-match net with
-| (p, rest) =>
-match l with
-| 0 => p
-| _ => NestedPairsNetSelect rest (pred l)
-end
-end
-end.
+  (* Определение интерфейса ассоциативной сети с вложенными парами на основе vec *)
+  Definition NestedPairsNetVec : Type := Vector.t (L * list L) n.
+  Definition IDoubletNetVec : L -> list L :=
+    fix f V i : list L :=
+    match V with
+      | nil _ => nil
+      | cons _ (n:=m) (j, ll) V' =>
+    if L.eqb i j then ll else f V' i
+    end.
+
+  (* Получение вложенной упорядоченной пары из NestedPairsNetList *)
+  Definition getDoubletList (net : NestedPairsNetList) (i : L) : NestedPair :=
+    let ll := IDoubletNetList i net in
+    match ll with
+      | nil => Empty
+      | cons hd tl => fold_right Doublet tl Empty
+    end.
+
+  (* Получение вложенной упорядоченной пары из NestedPairsNetVec *)
+  Definition getDoubletVec (net : NestedPairsNetVec) (i : L) : NestedPair :=
+    let ll := IDoubletNetVec net i in
+    match ll with
+      | nil => Empty
+      | cons hd tl => Vector.fold_left (fun p i => Doublet i p) tl (Doublet hd Empty)
+    end.
 End NestedPairsNets.
 
 Fixpoint depth (p : NestedPair) : nat :=
@@ -136,14 +108,7 @@ Section TuplesNets.
     end.
 
   (* Определение ассоциативной сети кортежей фиксированной длины n *)
-  Fixpoint TuplesNet (s n: nat) : Type :=
-    match s with
-    | 0 => unit
-    | S s' => prod (Tuple n) (TuplesNet s' n)
-    end.
-
-  (* Определение ассоциативной сети кортежей фиксированной длины n *)
-  Definition TuplesNetSelect (n: nat) : Type := L -> Tuple n.
+  Definition TuplesNet (n: nat) : Type := L -> Tuple n.
 End TuplesNets.
 
 Fixpoint tupleToNestedPair {n: nat} : Tuple n -> NestedPair :=
@@ -156,7 +121,7 @@ Fixpoint tupleToNestedPair {n: nat} : Tuple n -> NestedPair :=
         end
   end.
 
-Definition tuplesNetToPairsNet {n: nat} (f: TuplesNet n) : NestedPairsNet:=
+Definition tuplesNetToPairsNet {n: nat} (f: TuplesNet n) : INestedPairsNet:=
   fun id => tupleToNestedPair (f id).
 
 (* Лемма о сохранении глубины: *)
@@ -183,10 +148,10 @@ Fixpoint nestedPairToTupleOption (n: nat) (p: NestedPair) : option (Tuple n) :=
   | _, _ => None
   end.
 
-Definition pairsNetToTuplesNetOption {n: nat} (f: NestedPairsNet) : L -> option (Tuple n) :=
+Definition pairsNetToTuplesNetOption {n: nat} (f: INestedPairsNet) : L -> option (Tuple n) :=
   fun id => nestedPairToTupleOption n (f id).
 
-Definition pairsNetToTuplesNet { n: nat } (net: NestedPairsNet) (default: Tuple n) : TuplesNet n :=
+Definition pairsNetToTuplesNet { n: nat } (net: INestedPairsNet) (default: Tuple n) : TuplesNet n :=
   fun id => match nestedPairToTupleOption n (net id) with
             | Some t => t
             | None => default
@@ -207,7 +172,7 @@ Definition nets_equiv {n: nat} (net1: TuplesNet n) (net2: TuplesNet n) : Prop :=
   forall id, net1 id = net2 id.
 
 (*
- Теорема обертывания и восстановления ассоциативной сети кортежей:
+   Теорема обертывания и восстановления ассоциативной сети кортежей:
 
 Пусть дана ассоциативная сеть кортежей длины n, обозначенная как netⁿ : L → Tⁿ.
 
@@ -223,7 +188,7 @@ Definition nets_equiv {n: nat} (net1: TuplesNet n) (net2: TuplesNet n) : Prop :=
 
     ∀ netⁿ : L → Tⁿ, преобразованиеобратно(преобразованиевперед(netⁿ)) = netⁿ.
 
-Это утверждение требуется доказать на coq.
+Это утверждение требуется доказать.
  *)
 Theorem nets_equiv_after_transforms : forall {n: nat} (net: TuplesNet n),
   nets_equiv net (fun id => match nestedPairToTupleOption n ((tuplesNetToPairsNet net) id) with
@@ -269,7 +234,7 @@ Compute (tuplesNetToPairsNet complexExampleNet) 3.
 Compute (tuplesNetToPairsNet complexExampleNet) 4.
 Compute (tuplesNetToPairsNet complexExampleNet) 5.
 
-Definition testPairsNet : NestedPairsNet :=
+Definition testPairsNet : INestedPairsNet :=
   fun _ => Doublet 1 (Doublet 2 (Doublet 0 Empty)).
 
 Definition testTupleDefault : Tuple 3 := (0, (0, (0, tt))). 
