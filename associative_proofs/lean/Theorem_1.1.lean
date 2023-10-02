@@ -1,4 +1,4 @@
-(*
+/-
 Определения:
 Последовательность идентификаторов кортежей: L ⊆ ℕ₀
 Множество кортежей идентификаторов длины n ∈ ℕ₀: Tn ⊆ Lⁿ.
@@ -23,75 +23,74 @@
  где количество индексов соответствует количеству элементов кортежа.
 Ассоциация - это упорядоченная пара, состоящая из идентификатора кортежа и кортежа идентификаторов. Эта структура служит для отображения между идентификаторами и кортежами.
 Пустой кортеж представлен пустым множеством: () представлено как ∅.
-*)
-Require Import Coq.Init.Datatypes.
-Require Import Coq.Lists.List.
-Require Import Coq.Vectors.Vector.
+-/
+import init.datatypes -- эквивалент Coq: Require Import Coq.Init.Datatypes.
+import data.list -- эквивалент Coq: Require Import Coq.Lists.List.
+import data.vector -- эквивалент Coq: Require Import Coq.Vectors.Vector.
 
-(* Примеры использования:
+/- Примеры использования:
 Definition my_list : list A := cons a (cons b (cons c nil)).
 Definition my_vec : vec A n := @Vector.const A n a.
-*)
+-/
 
-(* Определяем базовый тип идентификаторов *)
-Definition L := nat.
-Definition l0 := 0.
+/- Определяем базовый тип идентификаторов -/
+def L : Type := nat
+def l0 : L := 0
 
-Section NestedPairsNets.
-  (* Определение вложенной пары с переменной длиной *)
-  Inductive NestedPair: Type :=
-  | Empty: NestedPair
-  | Doublet: L -> (NestedPair) -> NestedPair.
+section NestedPairsNets
+  /- Определение вложенной пары с переменной длиной -/
+  inductive NestedPair : Type
+  | Empty : NestedPair
+  | Doublet : L → NestedPair → NestedPair
 
-  (* Опреледение списка из NestedPair *)
-  Definition NestedPairsList : Type := list NestedPair.
+  /- Определение списка из NestedPair -/
+  def NestedPairsList : Type := list NestedPair
 
-  (* Определение интерфейса ассоциативной сети с вложенными парами *)
-  Definition INestedPairsNet : Type := L -> NestedPair. 
+  /- Определение интерфейса ассоциативной сети с вложенными парами -/
+  def INestedPairsNet : Type := L → NestedPair
 
-  (* Определение функции доступа к элементу с номером i в списке *)
-  Fixpoint nth_nested_pair (n : nat) (np_list : NestedPairsList) : option NestedPair :=
-  match n, np_list with
-    | 0, np :: _ => Some np
-    | S m, _ :: np_list' => nth_nested_pair m np_list'
-    | _, nil => None
-  end.
+  /- Определение функции доступа к элементу с номером i в списке -/
+  def nth_nested_pair (n : ℕ) (np_list : NestedPairsList) : option NestedPair :=
+    match n, np_list with
+    | 0, np :: _ => some np
+    | nat.succ m, _ :: np_list' => nth_nested_pair m np_list'
+    | _, nil => none
+    end
 
-  (* Определение интерфейса ассоциативной сети с вложенными парами на основе list *)
-  Definition NestedPairsNetList : Type := list (L * list L).
-  Definition IDoubletNetList : L -> list L :=
-    fix f i (l : NestedPairsNetList) :=
-    match l with
-      | nil _ => nil
-      | cons (j, ll) l' => if L.eqb i j then ll else f i l'
-    end.
+  /- Определение интерфейса ассоциативной сети с вложенными парами на основе list -/
+  def NestedPairsNetList : Type := list (L × list L)
+  def IDoubletNetList : L → list L :=
+    let f : L → NestedPairsNetList → list L :=
+      λ i l, match l with
+             | [] => []
+             | (j, ll) :: l' => if L.eqb i j then ll else f i l'
+             end in f
 
-  (* Определение интерфейса ассоциативной сети с вложенными парами на основе vec *)
-  Definition NestedPairsNetVec : Type := Vector.t (L * list L) n.
-  Definition IDoubletNetVec : L -> list L :=
-    fix f V i : list L :=
-    match V with
-      | nil _ => nil
-      | cons _ (n:=m) (j, ll) V' =>
-    if L.eqb i j then ll else f V' i
-    end.
+  /- Определение интерфейса ассоциативной сети с вложенными парами на основе vec -/
+  def NestedPairsNetVec : Type := Π (n : ℕ), vector (L × list L) n
+  def IDoubletNetVec : L → NestedPairsNetVec :=
+    let f : NestedPairsNetVec → L → list L :=
+      λ V i, match V with
+             | ⟨[], _⟩ => []
+             | ⟨(j, ll) :: V', _⟩ =>
+               if L.eqb i j then ll else f V' i
+             end in f
 
-  (* Получение вложенной упорядоченной пары из NestedPairsNetList *)
-  Definition getDoubletList (net : NestedPairsNetList) (i : L) : NestedPair :=
+  /- Получение вложенной упорядоченной пары из NestedPairsNetList -/
+  def getDoubletList (net : NestedPairsNetList) (i : L) : NestedPair :=
     let ll := IDoubletNetList i net in
     match ll with
-      | nil => Empty
-      | cons hd tl => fold_right Doublet tl Empty
-    end.
+    | [] => NestedPair.Empty
+    | hd :: tl => list.foldr NestedPair.Doublet NestedPair.Empty tl
 
-  (* Получение вложенной упорядоченной пары из NestedPairsNetVec *)
-  Definition getDoubletVec (net : NestedPairsNetVec) (i : L) : NestedPair :=
+  /- Получение вложенной упорядоченной пары из NestedPairsNetVec -/
+  def getDoubletVec (net : NestedPairsNetVec) (i : L) : NestedPair :=
     let ll := IDoubletNetVec net i in
     match ll with
-      | nil => Empty
-      | cons hd tl => Vector.fold_left (fun p i => Doublet i p) tl (Doublet hd Empty)
-    end.
-End NestedPairsNets.
+    | [] => NestedPair.Empty
+    | hd :: tl => vector.foldl NestedPair.Doublet (NestedPair.Doublet hd NestedPair.Empty) tl
+    end
+end NestedPairsNets
 
 Fixpoint depth (p : NestedPair) : nat :=
   match p with
@@ -100,14 +99,14 @@ Fixpoint depth (p : NestedPair) : nat :=
   end.
 
 Section TuplesNets.
-  (* Определение кортежа фиксированной длины n *)
+  /- Определение кортежа фиксированной длины n -/
   Fixpoint Tuple (n: nat) : Type :=
     match n with
     | 0 => unit
     | S n' => prod L (Tuple n')
     end.
 
-  (* Определение ассоциативной сети кортежей фиксированной длины n *)
+  /- Определение ассоциативной сети кортежей фиксированной длины n -/
   Definition TuplesNet (n: nat) : Type := L -> Tuple n.
 End TuplesNets.
 
@@ -124,13 +123,13 @@ Fixpoint tupleToNestedPair {n: nat} : Tuple n -> NestedPair :=
 Definition tuplesNetToPairsNet {n: nat} (f: TuplesNet n) : INestedPairsNet:=
   fun id => tupleToNestedPair (f id).
 
-(* Лемма о сохранении глубины: *)
+/- Лемма о сохранении глубины: -/
 Lemma depth_preserved : forall {l: nat} (t: Tuple l), depth (tupleToNestedPair t) = l.
 Proof.
   intros l. induction l as [| l' IH]; intros t.
-  - (* Базовый случай *)
+  - /- Базовый случай -/
     simpl. reflexivity.
-  - (* Шаг индукции *)
+  - /- Шаг индукции -/
     destruct t as [x t']. simpl.
     destruct l'.
     + simpl. reflexivity.
@@ -157,13 +156,13 @@ Definition pairsNetToTuplesNet { n: nat } (net: INestedPairsNet) (default: Tuple
             | None => default
             end.
 
-(* Лемма о взаимном обращении функций nestedPairToTupleOption и tupleToNestedPair *)
+/- Лемма о взаимном обращении функций nestedPairToTupleOption и tupleToNestedPair -/
 Lemma H_inverse: forall n: nat, forall t: Tuple n, nestedPairToTupleOption n (tupleToNestedPair t) = Some t.
 Proof.
   intros n. induction n as [| n' IH]; intros t.
-  - (* Базовый случай *)
+  - /- Базовый случай -/
     destruct t. reflexivity.
-  - (* Шаг индукции *)
+  - /- Шаг индукции -/
     destruct t as [x t']. simpl.
     rewrite IH. reflexivity.
 Qed.
@@ -171,7 +170,7 @@ Qed.
 Definition nets_equiv {n: nat} (net1: TuplesNet n) (net2: TuplesNet n) : Prop :=
   forall id, net1 id = net2 id.
 
-(*
+/-
    Теорема обертывания и восстановления ассоциативной сети кортежей:
 
 Пусть дана ассоциативная сеть кортежей длины n, обозначенная как netⁿ : L → Tⁿ.
@@ -189,7 +188,7 @@ Definition nets_equiv {n: nat} (net1: TuplesNet n) (net2: TuplesNet n) : Prop :=
     ∀ netⁿ : L → Tⁿ, преобразованиеобратно(преобразованиевперед(netⁿ)) = netⁿ.
 
 Это утверждение требуется доказать.
- *)
+ -/
 Theorem nets_equiv_after_transforms : forall {n: nat} (net: TuplesNet n),
   nets_equiv net (fun id => match nestedPairToTupleOption n ((tuplesNetToPairsNet net) id) with
                             | Some t => t
