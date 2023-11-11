@@ -1,5 +1,5 @@
 (*
-Определения:
+Определения Теории Связей:
 Последовательность идентификаторов кортежей: L ⊆ ℕ₀
 Множество кортежей идентификаторов длины n ∈ ℕ₀: Tn ⊆ Lⁿ.
 Множество всех ассоциаций: A = L × Tn.
@@ -26,19 +26,57 @@
 *)
 
 (*
-Тип Duality содержит два конструктора. Первый конструктор, LD (Link Doublet), содержит связь Link и пару Doublet. Второй конструктор, LL (Link Link), содержит две связи Link. Эти конструкторы будут использоваться для создания ассоциаций в ассоциативной сети.
-Связь Link - это структура данных, используемая для создания кортежей и связывания их с идентификаторами. Конструктор L0 используется для представления пустого кортежа. Конструктор L принимает связь Link и пару Doublet и возвращает новую связь Link, которая связывается с кортежем, содержащим эту пару.
-Пара Doublet представляет собой структуру данных, используемую для создания кортежей произвольной длины. Конструктор D0 используется для создания пустого кортежа, а конструктор D принимает две связи Link и возвращает новую пару Doublet, которая связывается с кортежем, содержащим эти связи.
+  Требования к реализации Теории Связей на coq:
+1. Использование простых типов с доказанными теоремами в их отношении
+  Это необходимо для того, что бы ChatGPT было проще доказывать теоремы для нас.
+2. Использование типа nat для идентификатора кортежей
+3. Использование типа prod nat для представления типа дуплета
+4. Использование типа vec для представления структуры всех ассоциативных сетей как кортежей компонент одного типа
+5. Ассоциативная сеть кортежей длины 1 должна иметь такой же тип что и вложенные упорядоченные пары
 *)
-Inductive Duality : Type :=
-  | LL : Link -> Link -> Duality
-  | DL : Doublet -> Link -> Duality
-with Link : Type :=
-  | L0 : Link
-  | L : Doublet -> Link -> Link
-with Doublet : Type :=
-  | D0 : Doublet
-  | D : Link -> Link -> Doublet.
+
+(*
+BinaryRelation - это обобщенный тип для представления упорядоченных пар элементов произвольных типов.
+BinaryList - обобщенный тип для представления списков, в которых каждый элемент связан с остатком списка.
+Doublet - представляет собой дуплет или упорядоченную пару натуральных чисел.
+DupletANet - представляет собой конкретную ассоциативную сеть дуплетов, моделируемую как список дуплетов, где каждый дуплет связан с оставшимся списком. Индекс каждого дуплета в списке становится его идентификатором.
+Association - представляет бинарное отношение между натуральным числом (идентификатором) и Doublet. 
+*)
+Inductive BinaryRelation (A B : Type) : Type :=
+  | Rel: A -> B -> BinaryRelation A B.
+
+Definition Doublet := BinaryRelation nat nat.
+Definition Association := BinaryRelation nat Doublet.
+
+Inductive BinaryList : Type :=
+  | Nil : BinaryList
+  | Cons : BinaryRelation Doublet BinaryList -> BinaryList.
+
+Fixpoint BinaryList_depth (d : BinaryList) : nat :=
+  match d with
+   | Nil => 0
+   | Cons (Rel _ d') => S (BinaryList_depth d')
+  end.
+
+
+Definition DupletANet := BinaryList Doublet.
+
+
+Fixpoint DupletANet_depth (d : DupletANet) : nat :=
+  match d with
+  | Nil => 0
+  | Cons _ t => 1 + (DupletANet_depth t)
+  end.
+
+Definition DefaultDoublet := Rel 0 0 : Doublet.
+
+Fixpoint getDoubletAtIndex (l : DupletANet) (i : nat) : Doublet :=
+  match l, i with
+    | Nil _, _ => DefaultDoublet (* возвращаем стандартное значение если список пуст или i больше длины списка *)
+    | Cons _ h t, 0 => h (* возвращаем голову списка, если i = 0 *)
+    | Cons _ _ t, S n => getDoubletAtIndex t n (* продолжаем поиск в остатке списка *)
+  end.
+
 
 
 (*Функция для вычисления глубины Link может быть реализована следующим образом:*)
@@ -56,8 +94,10 @@ Fixpoint getDoubletAtIndex (l : Link) (i : nat) : Doublet :=
   | L _ nextLink, S j => getDoubletAtIndex nextLink j (* рекурсивный случай: продолжаем поиск в следующем узле *)
   end.
 
-Example exampleTuple : Link := L (D L0 L0) (L (D L0 L0) L0).
-Compute (depthLink exampleTuple).
+Example exampleTuple : DupletANet := L (D L0 L0) (L (D L0 L0) L0).
+Example exampleTuple1 : DupletANet := L (D L0 L0) (L (D L0 L0) L0).
+Example exampleTuple2 : DupletANet := L (D L0 L0) (L (D L0 L0) L0).
+Compute (DupletANet_depth exampleTuple).
 Compute (getDoubletAtIndex exampleTuple 1).
 
 Require Import Coq.Init.Datatypes.
