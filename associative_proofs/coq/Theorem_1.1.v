@@ -102,8 +102,9 @@ Fixpoint NPToVnOption (n: nat) (p: NP) : option (Vn n) :=
   | _, _ => None
   end.
 
-Definition pairsNetToTuplesNetOption {n: nat} (f: NestedPairsNet) : L -> option (Tuple n) :=
-  fun id => nestedPairToTupleOption n (f id).
+(* Функция преобразования ANetLf в условную ANetVf *)
+Definition ANetLfToANetVfOption {n: nat} (f: ANetLf) : L -> option (Vn n) :=
+  fun id => NPToVnOption n (f id).
 
 Definition pairsNetToTuplesNet { n: nat } (net: NestedPairsNet) (default: Tuple n) : TuplesNet n :=
   fun id => match nestedPairToTupleOption n (net id) with
