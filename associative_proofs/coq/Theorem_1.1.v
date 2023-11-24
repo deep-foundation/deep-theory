@@ -38,11 +38,15 @@
   которое состоит из пустых пар, и пар содержащих один или более элементов.
 *)
 
+Require Import Vector.
+Require Import List.
+Import ListNotations.
+Import VectorNotations. (* Import vector notations *)
+
 (* Последовательность идентификаторов векторов: L ⊆ ℕ₀ *)
 Definition L := nat.
 
 (* Множество векторов идентификаторов длины n ∈ ℕ₀: Vn ⊆ Lⁿ *)
-From Coq Require Import Vector.
 Definition Vn (n : nat) := t L n.
 
 (* Множество всех ассоциаций: A = L × Vn *)
@@ -66,62 +70,11 @@ Definition NP := list L.
 Definition ANetLf := L -> NP.
 Definition ANetLl := list NP.
 
-
-(*
-  Теорема обертывания и восстановления ассоциативной сети векторов:
-
-Пусть дана ассоциативная сеть векторов длины n, обозначенная как anetvⁿ : L → Vⁿ.
-Определим операцию отображения этой сети в ассоциативную сеть вложенных упорядоченных пар anetl : L → NP, где NP = {(∅,∅) | (l,np), l ∈ L, np ∈ NP}.
-Затем определим обратное отображение из ассоциативной сети вложенных упорядоченных пар обратно в ассоциативную сеть векторов длины n.
-
-  Теорема утверждает:
-
-Для любой ассоциативной сети векторов длины n, anetvⁿ, применение операции преобразования в ассоциативную сеть вложенных упорядоченных пар
- и обратное преобразование обратно в ассоциативную сеть векторов длины n обеспечивает восстановление исходной сети anetvⁿ.
-То есть, если мы преобразуем anetvⁿ в anetl и потом обратно в anetvⁿ, то мы получим исходную ассоциативную сеть векторов anetvⁿ. Иначе говоря:
-
-    ∀ anetvⁿ : L → Vⁿ, преобразованиеобратно(преобразованиевперед(anetvⁿ)) = anetvⁿ.
-
-Это утверждение требуется доказать.
-*)
-
-
-Section NestedPairsNets.
-  (* Определение вложенной пары с переменной длиной *)
-  Inductive NestedPair: Type :=
-  | Empty: NestedPair
-  | Doublet: L -> (NestedPair) -> NestedPair.
-
-  (* Определение ассоциативной сети с вложенными парами *)
-  Definition NestedPairsNet : Type := L -> NestedPair. 
-End NestedPairsNets.
-
-Fixpoint depth (p : NestedPair) : nat :=
-  match p with
-  | Empty => 0
-  | Doublet _ p' => S (depth p')
-  end.
-
-Section TuplesNets.
-  (* Определение кортежа фиксированной длины n *)
-  Fixpoint Tuple (n: nat) : Type :=
-    match n with
-    | 0 => unit
-    | S n' => prod L (Tuple n')
-    end.
-
-  (* Определение ассоциативной сети кортежей фиксированной длины n *)
-  Definition TuplesNet (n: nat) : Type := L -> Tuple n.
-End TuplesNets.
-
-Fixpoint tupleToNestedPair {n: nat} : Tuple n -> NestedPair :=
-  match n with
-  | 0 => fun _ => Empty
-  | S n' => 
-      fun t => 
-        match t with
-        | (f, rest) => Doublet f (tupleToNestedPair rest)
-        end
+(* Функция преобразования Vn в NP *)
+Fixpoint VnToNP {n : nat} (v : Vn n) : NP :=
+  match v with
+  | Vector.nil _ => List.nil
+  | Vector.cons _ h _ t => List.cons h (VnToNP t)
   end.
 
 Definition tuplesNetToPairsNet {n: nat} (f: TuplesNet n) : NestedPairsNet:=
@@ -174,7 +127,22 @@ Qed.
 Definition nets_equiv {n: nat} (net1: TuplesNet n) (net2: TuplesNet n) : Prop :=
   forall id, net1 id = net2 id.
 
-(* Теорема обертывания и восстановления ассоциативной сети кортежей *)
+(*
+  Теорема обертывания и восстановления ассоциативной сети векторов:
+
+Пусть дана ассоциативная сеть векторов длины n, обозначенная как anetvⁿ : L → Vⁿ.
+Определим операцию отображения этой сети в ассоциативную сеть вложенных упорядоченных пар anetl : L → NP, где NP = {(∅,∅) | (l,np), l ∈ L, np ∈ NP}.
+Затем определим обратное отображение из ассоциативной сети вложенных упорядоченных пар обратно в ассоциативную сеть векторов длины n.
+
+  Теорема утверждает:
+
+Для любой ассоциативной сети векторов длины n, anetvⁿ, применение операции преобразования в ассоциативную сеть вложенных упорядоченных пар
+ и обратное преобразование обратно в ассоциативную сеть векторов длины n обеспечивает восстановление исходной сети anetvⁿ.
+То есть, если мы преобразуем anetvⁿ в anetl и потом обратно в anetvⁿ, то мы получим исходную ассоциативную сеть векторов anetvⁿ. Иначе говоря:
+
+    ∀ anetvⁿ : L → Vⁿ, преобразованиеобратно(преобразованиевперед(anetvⁿ)) = anetvⁿ.
+*)
+
 Theorem nets_equiv_after_transforms : forall {n: nat} (net: TuplesNet n),
   nets_equiv net (fun id => match nestedPairToTupleOption n ((tuplesNetToPairsNet net) id) with
                             | Some t => t
