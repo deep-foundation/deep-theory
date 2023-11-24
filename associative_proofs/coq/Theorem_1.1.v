@@ -77,8 +77,9 @@ Fixpoint VnToNP {n : nat} (v : Vn n) : NP :=
   | Vector.cons _ h _ t => List.cons h (VnToNP t)
   end.
 
-Definition tuplesNetToPairsNet {n: nat} (f: TuplesNet n) : NestedPairsNet:=
-  fun id => tupleToNestedPair (f id).
+(* Функция преобразования ANetVf в ANetLf *)
+Definition ANetVfToANetLf {n : nat} (a: ANetVf n) : ANetLf:=
+  fun id => VnToNP (a id).
 
 (* Лемма о сохранении глубины: *)
 Lemma depth_preserved : forall {l: nat} (t: Tuple l), depth (tupleToNestedPair t) = l.
