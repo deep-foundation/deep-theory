@@ -81,17 +81,13 @@ Fixpoint VnToNP {n : nat} (v : Vn n) : NP :=
 Definition ANetVfToANetLf {n : nat} (a: ANetVf n) : ANetLf:=
   fun id => VnToNP (a id).
 
-(* Лемма о сохранении глубины: *)
-Lemma depth_preserved : forall {l: nat} (t: Tuple l), depth (tupleToNestedPair t) = l.
+(* Лемма о сохранении длины векторов ассоциативной сети *)
+Lemma Vn_dim_preserved : forall {l: nat} (t: Vn l), List.length (VnToNP t) = l.
 Proof.
-  intros l. induction l as [| l' IH]; intros t.
-  - (* Базовый случай *)
-    simpl. reflexivity.
-  - (* Шаг индукции *)
-    destruct t as [x t']. simpl.
-    destruct l'.
-    + simpl. reflexivity.
-    + simpl. f_equal. apply IH.
+  intros l t.
+  induction t.
+  - simpl. reflexivity.
+  - simpl. rewrite IHt. reflexivity.
 Qed.
 
 Fixpoint nestedPairToTupleOption (n: nat) (p: NestedPair) : option (Tuple n) :=
