@@ -90,13 +90,14 @@ Proof.
   - simpl. rewrite IHt. reflexivity.
 Qed.
 
-Fixpoint nestedPairToTupleOption (n: nat) (p: NestedPair) : option (Tuple n) :=
+(* Функция преобразования NP в Vn *)
+Fixpoint NPToVnOption (n: nat) (p: NP) : option (Vn n) :=
   match n, p with
-  | 0, Empty => Some tt
-  | S n', Doublet f p' => 
-      match nestedPairToTupleOption n' p' with
+  | 0, List.nil => Some (Vector.nil nat)
+  | S n', List.cons f p' => 
+      match NPToVnOption n' p' with
       | None => None
-      | Some t => Some (f, t)
+      | Some t => Some (Vector.cons nat f n' t)
       end
   | _, _ => None
   end.
