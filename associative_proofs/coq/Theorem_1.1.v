@@ -40,6 +40,9 @@
 
 Require Import Vector.
 Require Import List.
+Require Import Coq.Init.Datatypes.
+Require Import Coq.Program.Equality.
+
 Import ListNotations.
 Import VectorNotations. (* Import vector notations *)
 
@@ -113,15 +116,13 @@ Definition ANetLfToANetVf { n: nat } (net: ANetLf) (default: Vn n) : ANetVf n :=
             | None => default
             end.
 
-(* Лемма о взаимном обращении функций nestedPairToTupleOption и tupleToNestedPair *)
-Lemma H_inverse: forall n: nat, forall t: Tuple n, nestedPairToTupleOption n (tupleToNestedPair t) = Some t.
+(* Лемма о взаимном обращении функций NPToVnOption и VnToNP *)
+Lemma H_inverse: forall n: nat, forall t: Vn n, NPToVnOption n (VnToNP t) = Some t.
 Proof.
-  intros n. induction n as [| n' IH]; intros t.
-  - (* Базовый случай *)
-    destruct t. reflexivity.
-  - (* Шаг индукции *)
-    destruct t as [x t']. simpl.
-    rewrite IH. reflexivity.
+  intros n.
+  induction t as [| h n' t' IH].
+  - simpl. reflexivity.
+  - simpl. rewrite IH. reflexivity.
 Qed.
 
 Definition nets_equiv {n: nat} (net1: TuplesNet n) (net2: TuplesNet n) : Prop :=
