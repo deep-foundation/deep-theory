@@ -125,8 +125,8 @@ Proof.
   - simpl. rewrite IH. reflexivity.
 Qed.
 
-Definition nets_equiv {n: nat} (net1: TuplesNet n) (net2: TuplesNet n) : Prop :=
-  forall id, net1 id = net2 id.
+Definition anets_equiv {n: nat} (anet1: ANetVf n) (anet2: ANetVf n) : Prop :=
+  forall id, anet1 id = anet2 id.
 
 (*
   Теорема обертывания и восстановления ассоциативной сети векторов:
@@ -144,14 +144,14 @@ Definition nets_equiv {n: nat} (net1: TuplesNet n) (net2: TuplesNet n) : Prop :=
     ∀ anetvⁿ : L → Vⁿ, преобразованиеобратно(преобразованиевперед(anetvⁿ)) = anetvⁿ.
 *)
 
-Theorem nets_equiv_after_transforms : forall {n: nat} (net: TuplesNet n),
-  nets_equiv net (fun id => match nestedPairToTupleOption n ((tuplesNetToPairsNet net) id) with
+Theorem anets_equiv_after_transforms : forall {n: nat} (anet: ANetVf n),
+  anets_equiv anet (fun id => match NPToVnOption n ((ANetVfToANetLf anet) id) with
                             | Some t => t
-                            | None   => net id
+                            | None   => anet id
                             end).
 Proof.
   intros n net id.
-  unfold tuplesNetToPairsNet.
+  unfold ANetVfToANetLf.
   simpl.
   rewrite H_inverse.
   reflexivity.
