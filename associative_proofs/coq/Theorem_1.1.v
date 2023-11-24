@@ -157,23 +157,23 @@ Proof.
   reflexivity.
 Qed.
 
-
-Definition complexExampleNet : TuplesNet 3 :=
+Definition complexExampleNet : ANetVf 3 :=
   fun id => match id with
-  | 0 => (0, (0, (0, tt)))
-  | 1 => (1, (1, (0, tt)))
-  | 2 => (2, (0, (0, tt)))
-  | 3 => (3, (0, (0, tt)))
-  | 4 => (4, (0, (0, tt)))
-  | S _ => (0, (0, (0, tt)))
+  | 0 => [0; 0; 0]
+  | 1 => [1; 1; 2]
+  | 2 => [2; 4; 0]
+  | 3 => [3; 0; 5]
+  | 4 => [4; 1; 1]
+  | S _ => [0; 0; 0]
   end.
 
-Definition exampleTuple0 : Tuple 0 := tt.
-Definition exampleTuple1 : Tuple 1 := (0, tt).
-Definition exampleTuple4 : Tuple 4 := (3, (2, (1, (0, tt)))).
-Definition nestedPair0 := tupleToNestedPair exampleTuple0.
-Definition nestedPair1 := tupleToNestedPair exampleTuple1.
-Definition nestedPair4 := tupleToNestedPair exampleTuple4.
+
+Definition exampleTuple0 : Vn 0 := [].
+Definition exampleTuple1 : Vn 1 := [0].
+Definition exampleTuple4 : Vn 4 := [3; 2; 1; 0].
+Definition nestedPair0 := VnToNP exampleTuple0.
+Definition nestedPair1 := VnToNP exampleTuple1.
+Definition nestedPair4 := VnToNP exampleTuple4.
 Check nestedPair0.
 Check nestedPair1.
 Check nestedPair4.
@@ -181,20 +181,20 @@ Compute nestedPair0.
 Compute nestedPair1.
 Compute nestedPair4.
 
-Compute (tuplesNetToPairsNet complexExampleNet) 0.
-Compute (tuplesNetToPairsNet complexExampleNet) 1.
-Compute (tuplesNetToPairsNet complexExampleNet) 2.
-Compute (tuplesNetToPairsNet complexExampleNet) 3.
-Compute (tuplesNetToPairsNet complexExampleNet) 4.
-Compute (tuplesNetToPairsNet complexExampleNet) 5.
+Compute (ANetVfToANetLf complexExampleNet) 0.
+Compute (ANetVfToANetLf complexExampleNet) 1.
+Compute (ANetVfToANetLf complexExampleNet) 2.
+Compute (ANetVfToANetLf complexExampleNet) 3.
+Compute (ANetVfToANetLf complexExampleNet) 4.
+Compute (ANetVfToANetLf complexExampleNet) 5.
 
-Definition testPairsNet : NestedPairsNet :=
-  fun _ => Doublet 1 (Doublet 2 (Doublet 0 Empty)).
+Definition testPairsNet : ANetLf :=
+  fun _ => cons 1 (cons 2 (cons 0 nil)).
 
-Definition testTupleDefault : Tuple 3 := (0, (0, (0, tt))). 
+Definition testTupleDefault : Vn 3 := [0; 0; 0]. 
 
-Definition testTuplesNet : TuplesNet 3 :=
-  pairsNetToTuplesNet testPairsNet testTupleDefault.
+Definition testTuplesNet : ANetVf 3 :=
+  ANetLfToANetVf testPairsNet testTupleDefault.
 
 Compute testTuplesNet 0.
 
