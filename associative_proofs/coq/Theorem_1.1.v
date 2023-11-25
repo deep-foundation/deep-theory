@@ -41,10 +41,8 @@
 Require Import Vector.
 Require Import List.
 Require Import Coq.Init.Datatypes.
-Require Import Coq.Program.Equality.
-
 Import ListNotations.
-Import VectorNotations. (* Import vector notations *)
+Import VectorNotations.
 
 (* Последовательность идентификаторов векторов: L ⊆ ℕ₀ *)
 Definition L := nat.
@@ -52,19 +50,15 @@ Definition L := nat.
 (* Множество векторов идентификаторов длины n ∈ ℕ₀: Vn ⊆ Lⁿ *)
 Definition Vn (n : nat) := t L n.
 
+(* Дефолтное значение Vn *)
+Definition VnDefault (n : nat) : Vn n := Vector.const 0 n.
+
 (* Множество всех ассоциаций: A = L × Vn *)
 Definition A (n : nat) := prod L (Vn n).
 
 (* Ассоциативная сеть векторов длины n (или n-мерная асеть) из семейства функций {anetvⁿ : L → Vn} *)
 Definition ANetVf (n : nat) := L -> Vn n.
 Definition ANetVl (n : nat) := list (Vn n).
-
-(* Дуплет *)
-Definition D := prod L L.
-
-(* Ассоциативная сеть дуплетов (или двумерная асеть): anetd : L → L² *)
-Definition ANetDf := L -> D.
-Definition ANetDl := list D.
 
 (* Вложенные упорядоченные пары *)
 Definition NP := list L.
@@ -84,14 +78,9 @@ Fixpoint VnToNP {n : nat} (v : Vn n) : NP :=
 Definition ANetVfToANetLf {n : nat} (a: ANetVf n) : ANetLf:=
   fun id => VnToNP (a id).
 
-(* Лемма о сохранении длины векторов ассоциативной сети *)
-Lemma Vn_dim_preserved : forall {l: nat} (t: Vn l), List.length (VnToNP t) = l.
-Proof.
-  intros l t.
-  induction t.
-  - simpl. reflexivity.
-  - simpl. rewrite IHt. reflexivity.
-Qed.
+(* Функция преобразования ANetVl в ANetLl *)
+Definition ANetVlToANetLl {n: nat} (net: ANetVl n) : ANetLl :=
+  map VnToNP net.
 
 (* Функция преобразования NP в Vn *)
 Fixpoint NPToVnOption (n: nat) (p: NP) : option (Vn n) :=
@@ -105,18 +94,69 @@ Fixpoint NPToVnOption (n: nat) (p: NP) : option (Vn n) :=
   | _, _ => None
   end.
 
-(* Функция преобразования ANetLf в условную ANetVf *)
-Definition ANetLfToANetVfOption {n: nat} (f: ANetLf) : L -> option (Vn n) :=
-  fun id => NPToVnOption n (f id).
+(* Функция преобразования NP в Vn с VnDefault *)
+Definition NPToVn (n: nat) (p: NP) : Vn n :=
+  match NPToVnOption n p with
+  | None => VnDefault n
+  | Some t => t
+  end.
 
 (* Функция преобразования ANetLf в ANetVf *)
-Definition ANetLfToANetVf { n: nat } (net: ANetLf) (default: Vn n) : ANetVf n :=
+Definition ANetLfToANetVf { n: nat } (net: ANetLf) : ANetVf n :=
   fun id => match NPToVnOption n (net id) with
             | Some t => t
-            | None => default
+            | None => VnDefault n
             end.
 
-(* Лемма о взаимном обращении функций NPToVnOption и VnToNP *)
+(* Функция преобразования ANetLl в ANetVl *)
+Definition ANetLlToANetVl {n: nat} (net : ANetLl) : ANetVl n :=
+  map (NPToVn n) net.
+
+(* Определение anets_equiv вводит предикат эквивалентности двух ассоциативных сетей векторов,
+ anet1 и anet2 типа ANetVf, обе переменной длины n. 
+
+  Данный предикат описывает свойство "эквивалентности" для таких сетей.
+ Он утверждает, что anet1 и anet2 считаются "эквивалентными", если для каждого идентификатора id вектор,
+ связанный с id в anet1, точно совпадает с вектором, связанным с тем же id в anet2.
+*)
+Definition ANetVf_equiv {n: nat} (anet1: ANetVf n) (anet2: ANetVf n) : Prop :=
+  forall id, anet1 id = anet2 id.
+
+(* Определение anets_equiv вводит предикат эквивалентности двух ассоциативных сетей векторов,
+ anet1 и anet2 типа ANetVl, обе переменной длины n.
+*)
+Definition ANetVl_equiv_Vl {n: nat} (anet1: ANetVl n) (anet2: ANetVl n) : Prop :=
+  anet1 = anet2.
+
+(*  Доказательства *)
+
+(* Лемма о сохранении длины векторов ассоциативной сети *)
+Lemma Vn_dim_preserved : forall {l: nat} (t: Vn l), List.length (VnToNP t) = l.
+Proof.
+  intros l t.
+  induction t.
+  - simpl. reflexivity.
+  - simpl. rewrite IHt. reflexivity.
+Qed.
+
+(* Лемма о взаимном обращении функций NPToVnOption и VnToNP
+
+  H_inverse доказывает, что каждый вектор Vn без потери данных может быть преобразован в NP
+ с помощью VnToNP и обратно в Vn с помощью NPToVnOption.
+
+  В формальном виде forall n: nat, forall t: Vn n, NPToVnOption n (VnToNP t) = Some t говорит о том,
+ что для всякого натурального числа n и каждого вектора Vn длины n,
+ мы можем преобразовать Vn в NP с помощью VnToNP,
+ затем обратно преобразовать результат в Vn с помощью NPToVnOption n,
+ и в итоге получать тот же вектор Vn, что и в начале.
+
+  Это свойство очень важно, потому что оно гарантирует,
+ что эти две функции образуют обратные друг к другу пары функций на преобразуемом круге векторов Vn и NP.
+ Когда вы применяете обе функции к значениям в преобразумом круге, вы в итоге получаете исходное значение.
+ Это означает, что никакая информация не теряется при преобразованиях,
+ так что вы можете свободно конвертировать между Vn и NP,
+ если это требуется в вашей реализации или доказательствах.
+ *)
 Lemma H_inverse: forall n: nat, forall t: Vn n, NPToVnOption n (VnToNP t) = Some t.
 Proof.
   intros n.
@@ -125,8 +165,6 @@ Proof.
   - simpl. rewrite IH. reflexivity.
 Qed.
 
-Definition anets_equiv {n: nat} (anet1: ANetVf n) (anet2: ANetVf n) : Prop :=
-  forall id, anet1 id = anet2 id.
 
 (*
   Теорема обертывания и восстановления ассоциативной сети векторов:
@@ -144,8 +182,8 @@ Definition anets_equiv {n: nat} (anet1: ANetVf n) (anet2: ANetVf n) : Prop :=
     ∀ anetvⁿ : L → Vⁿ, преобразованиеобратно(преобразованиевперед(anetvⁿ)) = anetvⁿ.
 *)
 
-Theorem anets_equiv_after_transforms : forall {n: nat} (anet: ANetVf n),
-  anets_equiv anet (fun id => match NPToVnOption n ((ANetVfToANetLf anet) id) with
+Theorem anetf_equiv_after_transforms : forall {n: nat} (anet: ANetVf n),
+  ANetVf_equiv anet (fun id => match NPToVnOption n ((ANetVfToANetLf anet) id) with
                             | Some t => t
                             | None   => anet id
                             end).
@@ -157,6 +195,17 @@ Proof.
   reflexivity.
 Qed.
 
+
+(* Дуплет *)
+Definition D := prod L L.
+
+(* Ассоциативная сеть дуплетов (или двумерная асеть): anetd : L → L² *)
+Definition ANetDf := L -> D.
+Definition ANetDl := list D.
+
+
+(*  Примеры *)
+
 Definition complexExampleNet : ANetVf 3 :=
   fun id => match id with
   | 0 => [0; 0; 0]
@@ -166,7 +215,6 @@ Definition complexExampleNet : ANetVf 3 :=
   | 4 => [4; 1; 1]
   | S _ => [0; 0; 0]
   end.
-
 
 Definition exampleTuple0 : Vn 0 := [].
 Definition exampleTuple1 : Vn 1 := [0].
@@ -191,10 +239,8 @@ Compute (ANetVfToANetLf complexExampleNet) 5.
 Definition testPairsNet : ANetLf :=
   fun _ => cons 1 (cons 2 (cons 0 nil)).
 
-Definition testTupleDefault : Vn 3 := [0; 0; 0]. 
-
 Definition testTuplesNet : ANetVf 3 :=
-  ANetLfToANetVf testPairsNet testTupleDefault.
+  ANetLfToANetVf testPairsNet.
 
 Compute testTuplesNet 0.
 
