@@ -1,193 +1,154 @@
 (*
-Определения:
-Последовательность идентификаторов кортежей: L ⊆ ℕ₀
-Множество кортежей идентификаторов длины n ∈ ℕ₀: Tn ⊆ Lⁿ.
-Множество всех ассоциаций: A = L × Tn.
-Семейство функций: ∪_n {netⁿ | n ∈ ℕ₀} ⊆ A
-Здесь ∪ обозначает объединение всех функций в семействе {netⁿ},
- ⊆ обозначает 'это подмножество',
- а A - множество всех ассоциаций.
- Это говорит о том, что все упорядоченные пары, полученные от функций netⁿ, являются подмножеством A.
-Ассоциативная сеть кортежей длины n из семейства функций {netⁿ},
- netⁿ : L → Tn отображает идентификатор l из множества L в кортеж идентификаторов длины n,
- который принадлежит множеству Tn.
- 'n' в netⁿ указывает на то, что функция возвращает кортежи, содержащие n идентификаторов. 
-Ассоциативная сеть дуплетов: net² : L → T₂.
-Ассоциативная сеть вложенных упорядоченных пар: net : L → P,
- где P = {(∅,∅) | (l,∅) | (l1,l2), l, l1, l2 ∈ L} - это множество вложенных упорядоченных пар,
- которое состоит из пустых пар, пар, содержащих только один элемент, и пар, содержащих два элемента.
-Дополнительные пояснения:
-Кортеж длины n ∈ ℕ₀ можно представить как вложенные упорядоченные пары.
-Идентификатор кортежа - уникальный идентификатор, каждый из которых связан с определенным кортежем.
-Кортеж идентификаторов - это кортеж, состоящий из нуля или нескольких идентификаторов кортежей,
- где количество индексов соответствует количеству элементов кортежа.
-Ассоциация - это упорядоченная пара, состоящая из идентификатора кортежа и кортежа идентификаторов. Эта структура служит для отображения между идентификаторами и кортежами.
-Пустой кортеж представлен пустым множеством: () представлено как ∅.
+  Определения Теории связей в терминах Теории множеств:
 
-Теорема 2: Пусть n - фиксированное натуральное число, и пусть Tn является множеством кортежей идентификаторов длины n.
- Введем специальный идентификатор l0, которому соответствует пустой дуплет.
- Тогда существует функция f : Tn → P, которая биективно отображает кортеж идентификаторов в вложенную пару,
- и существует функция g : P → D, которая биективно отображает вложенную пару в ассоциативную сеть дуплетов.
- Здесь P - множество вложенных пар, D - сеть дуплетов. 
+1. Идентификатор вектора - уникальный идентификатор, каждый из которых связан с определенным вектором.
+  Последовательность идентификаторов векторов: L ⊆ ℕ₀.
 
-Словами, это означает, что каждый кортеж идентификаторов фиксированной длины n может быть представлен вложенной парой,
- и каждая вложенная пара может быть представлена ассоциативной сетью дуплетов.
- Отображение в обоих случаях является взаимно однозначным, то есть уникальным в обе стороны.
+2. Вектор идентификаторов: это вектор, состоящий из нуля или нескольких идентификаторов векторов,
+  где количество индексов соответствует количеству элементов вектора.
+  Множество всех векторов идентификаторов длины n ∈ ℕ₀: Vn = Lⁿ.
+  Декартова степень Lⁿ всегда даст вектор длины n, так как все его компоненты будут одного и того же типа L.
+  Другими словами, Lⁿ представляет собой множество всех возможных n-элементных векторов, где каждый элемент вектора принадлежит множеству L.
 
+3. Ассоциация - это упорядоченная пара, состоящая из идентификатора вектора и вектора идентификаторов.
+  Эта структура служит для отображения между идентификаторами и векторами или точками в пространстве.
+  Множество всех ассоциаций: A = L × Vn.
+
+4. Семейство функций: ∪_f {anetvⁿ | n ∈ ℕ₀} ⊆ A.
+  Здесь ∪ обозначает объединение всех функций в семействе {anetvⁿ},
+  ⊆ обозначает 'это подмножество', а A - множество всех ассоциаций.
+  Это говорит о том, что все упорядоченные пары, полученные от функций anetvⁿ, являются подмножеством A.
+
+5. Ассоциативная сеть векторов длины n (или n-мерная асеть) из семейства функций {anetvⁿ},
+  anetvⁿ : L → Vn отображает идентификатор l из множества L в кортеж идентификаторов длины n,
+  который принадлежит множеству Vn, фактически идентифицирует точки в n-мерном пространстве.
+  'n' в anetvⁿ указывает на то, что функция возвращает вектора, содержащие n идентификаторов. 
+
+
+6. Дуплет идентификаторов (упорядоченная пара или двухмерный вектор): D = L²
+  Это множество всех упорядоченных пар (L, L), или вторая декартова степень L.
+
+7. Ассоциативная сеть дуплетов (или двумерная асеть): anetd : L → L².
+
+8. Пустой вектор представлен пустым множеством: () представлено как ∅.
+  Вектор длины n ∈ ℕ₀ можно представить как вложенные упорядоченные пары.
+
+9. Ассоциативная сеть вложенных упорядоченных пар: anetl : L → NP,
+  где NP = {(∅,∅) | (l,np), l ∈ L, np ∈ NP} - это множество вложенных упорядоченных пар,
+  которое состоит из пустых пар, и пар содержащих один или более элементов.
 *)
 
-(* Определяем базовый тип идентификаторов кортежей *)
+Require Import Vector.
+Require Import List.
+Require Import Coq.Init.Datatypes.
+Import ListNotations.
+Import VectorNotations.
+
+(* Последовательность идентификаторов векторов: L ⊆ ℕ₀ *)
 Definition L := nat.
-Definition l0 := 0.
 
-(* Определение кортежа идентификаторов фиксированной длины n *)
-Fixpoint Tuple (n: nat) : Type :=
-  match n with
-  | 0 => unit
-  | S n' => prod L (Tuple n')
+(* Дефолтное значение L: ноль *)
+Definition LDefault : L := 0.
+
+(* Вложенные упорядоченные пары *)
+Definition NP := list L.
+
+(* Ассоциативная сеть вложенных упорядоченных пар: anetl : L → NP *)
+Definition ANetLf := L -> NP.
+Definition ANetLl := list NP.
+
+(* Дуплет *)
+Definition D := prod L L.
+
+(* Дефолтное значение D: пара из двух LDefault *)
+Definition DDefault : D := (LDefault, LDefault).
+
+(* Ассоциативная сеть дуплетов (или двумерная асеть): anetd : L → L² *)
+Definition ANetDf := L -> D.
+Definition ANetDl := list D.
+
+(* Предикат эквивалентности для ассоциативных сетей дуплетов ANetDf *)
+Definition ANetDf_equiv (anet1: ANetDf) (anet2: ANetDf) : Prop := forall id, anet1 id = anet2 id.
+
+(* Предикат эквивалентности для ассоциативных сетей дуплетов ANetDl *)
+Definition ANetDl_equiv (anet1: ANetDl) (anet2: ANetDl) : Prop := anet1 = anet2.
+
+(* Функция преобразования NP в ANetDl *)
+Fixpoint NPToANetDl (start: L) (np: NP) : ANetDl :=
+  match np with
+  | nil => cons (LDefault, LDefault) nil
+  | cons h t => cons (h, start + 1) (NPToANetDl (start + 1) t)
   end.
 
-Section NestedPairsNets.
-  (* Определение вложенной пары с переменной длиной *)
-  Inductive NestedPair: Type :=
-  | Empty: NestedPair
-  | Doublet: L -> (NestedPair) -> NestedPair.
+Compute NPToANetDl 1 (cons 121 (cons 21 (cons 1343 nil))).
+(* Должно вернуть: [(121, 2); (21, 3); (1343, 4); (0,0)] *)
 
-  (* Определение ассоциативной сети вложенных упорядоченных пар *)
-  Definition NestedPairsNet : Type := L -> NestedPair. 
-End NestedPairsNets.
+(*  Доказательства *)
 
-Fixpoint depth (p : NestedPair) : nat :=
-  match p with
-  | Empty => 0
-  | Doublet _ p' => S (depth p')
-  end.
-
-Section DupletNets.  
-  (* Определение дуплета *)
-  Definition Duplet := prod L L.
-
-  (* Определение ассоциативной сети дуплетов *)
-  Definition DupletNet : Type := L -> Duplet.
-End DupletNets.
-
-Fixpoint tupleToNestedPair {n: nat} : Tuple n -> NestedPair :=
-  match n with
-  | 0 => fun _ => Empty
-  | S n' => 
-      fun t => 
-        match t with
-        | (f, rest) => Doublet f (tupleToNestedPair rest)
-        end
-  end.
-
-(* Лемма о сохранении глубины: *)
-Lemma depth_preserved : forall {l: nat} (t: Tuple l), depth (tupleToNestedPair t) = l.
+(* Лемма о сохранении длины векторов ассоциативной сети *)
+Lemma Vn_dim_preserved : forall {l: nat} (t: Vn l), List.length (VnToNP t) = l.
 Proof.
-  intros l. induction l as [| l' IH]; intros t.
-  - (* Базовый случай *)
-    simpl. reflexivity.
-  - (* Шаг индукции *)
-    destruct t as [x t']. simpl.
-    destruct l'.
-    + simpl. reflexivity.
-    + simpl. f_equal. apply IH.
+  intros l t.
+  induction t.
+  - simpl. reflexivity.
+  - simpl. rewrite IHt. reflexivity.
 Qed.
 
-Fixpoint nestedPairToTupleOption (n: nat) (p: NestedPair) : option (Tuple n) :=
-  match n, p with
-  | 0, Empty => Some tt
-  | S n', Doublet f p' => 
-      match nestedPairToTupleOption n' p' with
-      | None => None
-      | Some t => Some (f, t)
-      end
-  | _, _ => None
-  end.
+(* Лемма о взаимном обращении функций NPToVnOption и VnToNP
 
-(* Лемма о взаимном обращении функций nestedPairToTupleOption и tupleToNestedPair *)
-Lemma H_inverse: forall n: nat, forall t: Tuple n, nestedPairToTupleOption n (tupleToNestedPair t) = Some t.
+  H_inverse доказывает, что каждый вектор Vn без потери данных может быть преобразован в NP
+ с помощью VnToNP и обратно в Vn с помощью NPToVnOption.
+
+  В формальном виде forall n: nat, forall t: Vn n, NPToVnOption n (VnToNP t) = Some t говорит о том,
+ что для всякого натурального числа n и каждого вектора Vn длины n,
+ мы можем преобразовать Vn в NP с помощью VnToNP,
+ затем обратно преобразовать результат в Vn с помощью NPToVnOption n,
+ и в итоге получать тот же вектор Vn, что и в начале.
+
+  Это свойство очень важно, потому что оно гарантирует,
+ что эти две функции образуют обратные друг к другу пары функций на преобразуемом круге векторов Vn и NP.
+ Когда вы применяете обе функции к значениям в преобразуемом круге, вы в итоге получаете исходное значение.
+ Это означает, что никакая информация не теряется при преобразованиях,
+ так что вы можете свободно конвертировать между Vn и NP,
+ если это требуется в вашей реализации или доказательствах.
+ *)
+Lemma H_inverse: forall n: nat, forall t: Vn n, NPToVnOption n (VnToNP t) = Some t.
 Proof.
-  intros n. induction n as [| n' IH]; intros t.
-  - (* Базовый случай *)
-    destruct t. reflexivity.
-  - (* Шаг индукции *)
-    destruct t as [x t']. simpl.
-    rewrite IH. reflexivity.
-Qed.
-
-(* Преобразование вложенной пары в DupletNet *)
-Fixpoint nestedPairToDupletNet (p: NestedPair) (l: L) : DupletNet :=
-  match p with
-  | Empty => (fun _ => (l, l0))
-  | Doublet l' p' => 
-      fun x => if (x =? l) then (l, l') else (nestedPairToDupletNet p' l) x
-  end.
-
-(* Преобразование DupletNet во вложенную пару *)
-Fixpoint dupletNetToNestedPair (net: DupletNet) (l: L) : NestedPair :=
-  match net l with
-  | (l', l0) => Empty
-  | (l', _) => Doublet l' (dupletNetToNestedPair net l')
-  end.
-
-(* Лемма о взаимном обращении функций nestedPairToDupletNet и dupletNetToNestedPair *)
-Lemma H_inverse_dupletNet: forall p: NestedPair, forall l: L, dupletNetToNestedPair (nestedPairToDupletNet p l) l = p.
-Proof.
-  intros p. induction p as [| l' p' IH]; intros l.
-  - (* Базовый случай *)
-    simpl. reflexivity.
-  - (* Шаг индукции *)
-    simpl. rewrite IH. reflexivity.
-Qed.
-
-(* Теорема 2 *)
-Theorem Theorem2: forall n: nat, forall t: Tuple n, forall l: L, dupletNetToNestedPair (nestedPairToDupletNet (tupleToNestedPair t) l) l = tupleToNestedPair t.
-Proof.
-  intros n t l.
-  apply H_inverse_dupletNet.
+  intros n.
+  induction t as [| h n' t' IH].
+  - simpl. reflexivity.
+  - simpl. rewrite IH. reflexivity.
 Qed.
 
 
+(*
+  Теорема обертывания и восстановления ассоциативной сети векторов:
 
-Definition complexExampleNet : TuplesNet 3 :=
-  fun id => match id with
-  | 0 => (0, (0, (0, tt)))
-  | 1 => (1, (1, (0, tt)))
-  | 2 => (2, (0, (0, tt)))
-  | 3 => (3, (0, (0, tt)))
-  | 4 => (4, (0, (0, tt)))
-  | S _ => (0, (0, (0, tt)))
-  end.
+Пусть дана ассоциативная сеть векторов длины n, обозначенная как anetvⁿ : L → Vⁿ.
+Определим операцию отображения этой сети в ассоциативную сеть вложенных упорядоченных пар anetl : L → NP, где NP = {(∅,∅) | (l,np), l ∈ L, np ∈ NP}.
+Затем определим обратное отображение из ассоциативной сети вложенных упорядоченных пар обратно в ассоциативную сеть векторов длины n.
 
-Definition exampleTuple0 : Tuple 0 := tt.
-Definition exampleTuple1 : Tuple 1 := (0, tt).
-Definition exampleTuple4 : Tuple 4 := (3, (2, (1, (0, tt)))).
-Definition nestedPair0 := tupleToNestedPair exampleTuple0.
-Definition nestedPair1 := tupleToNestedPair exampleTuple1.
-Definition nestedPair4 := tupleToNestedPair exampleTuple4.
-Check nestedPair0.
-Check nestedPair1.
-Check nestedPair4.
-Compute nestedPair0.
-Compute nestedPair1.
-Compute nestedPair4.
+  Теорема утверждает:
 
-Compute (tuplesNetToPairsNet complexExampleNet) 0.
-Compute (tuplesNetToPairsNet complexExampleNet) 1.
-Compute (tuplesNetToPairsNet complexExampleNet) 2.
-Compute (tuplesNetToPairsNet complexExampleNet) 3.
-Compute (tuplesNetToPairsNet complexExampleNet) 4.
-Compute (tuplesNetToPairsNet complexExampleNet) 5.
+Для любой ассоциативной сети векторов длины n, anetvⁿ, применение операции преобразования в ассоциативную сеть вложенных упорядоченных пар
+ и обратное преобразование обратно в ассоциативную сеть векторов длины n обеспечивает восстановление исходной сети anetvⁿ.
+То есть, если мы преобразуем anetvⁿ в anetl и потом обратно в anetvⁿ, то мы получим исходную ассоциативную сеть векторов anetvⁿ. Иначе говоря:
 
-Definition testPairsNet : NestedPairsNet :=
-  fun _ => Doublet 1 (Doublet 2 (Doublet 0 Empty)).
+    ∀ anetvⁿ : L → Vⁿ, преобразованиеобратно(преобразованиевперед(anetvⁿ)) = anetvⁿ.
+*)
 
-Definition testTupleDefault : Tuple 3 := (0, (0, (0, tt))). 
-
-Definition testTuplesNet : TuplesNet 3 :=
-  pairsNetToTuplesNet testPairsNet testTupleDefault.
-
-Compute testTuplesNet 0.
+Theorem anetf_equiv_after_transforms : forall {n: nat} (anet: ANetVf n),
+  ANetVf_equiv anet (fun id => match NPToVnOption n ((ANetVfToANetLf anet) id) with
+                            | Some t => t
+                            | None   => anet id
+                            end).
+Proof.
+  intros n net id.
+  unfold ANetVfToANetLf.
+  simpl.
+  rewrite H_inverse.
+  reflexivity.
+Qed.
 
 
+(*  Примеры *)
