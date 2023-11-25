@@ -53,6 +53,9 @@ Definition LDefault : L := 0.
 (* Вложенные упорядоченные пары *)
 Definition NP := list L.
 
+Notation "[ ]" := (nil) (at level 0).
+Notation "[ x , .. , y ]" := (cons x .. (cons y nil) ..) (at level 0).
+
 (* Ассоциативная сеть вложенных упорядоченных пар: anetl : L → NP *)
 Definition ANetLf := L -> NP.
 Definition ANetLl := list NP.
@@ -80,8 +83,20 @@ Fixpoint NPToANetDl (start: L) (np: NP) : ANetDl :=
   | cons h t => cons (h, start + 1) (NPToANetDl (start + 1) t)
   end.
 
-Compute NPToANetDl 1 (cons 121 (cons 21 (cons 1343 nil))).
+(* Функция добавления NP в ANetDl *)
+Definition AddNPToANetDl (anet: ANetDl) (np: NP) : ANetDl :=
+  let new_anet := NPToANetDl ((List.length anet) + 1) np in
+  List.app anet new_anet.
+
+Compute NPToANetDl 1 [ 121, 21, 1343 ].
 (* Должно вернуть: [(121, 2); (21, 3); (1343, 4); (0,0)] *)
+
+Compute AddNPToANetDl [(121, 2), (21, 3), (1343, 4), (0, 0)] [12, 23, 34]. 
+(* Ожидается результат: [(121, 2); (21, 3); (1343, 4); (0, 0); (12, 6); (23, 7); (34, 8); (0, 0)] *)
+
+Compute AddNPToANetDl [(121, 2), (21, 3), (0, 0)] [999]. 
+(* Ожидается результат: [(121, 2); (21, 3); (9999, 5); (0, 0)] *)
+
 
 (*  Доказательства *)
 
