@@ -41,6 +41,7 @@
 Require Import Vector.
 Require Import List.
 Require Import Coq.Init.Datatypes.
+Require Import PeanoNat.
 Import ListNotations.
 Import VectorNotations.
 
@@ -76,38 +77,79 @@ Definition ANetDf_equiv (anet1: ANetDf) (anet2: ANetDf) : Prop := forall id, ane
 (* Предикат эквивалентности для ассоциативных сетей дуплетов ANetDl *)
 Definition ANetDl_equiv (anet1: ANetDl) (anet2: ANetDl) : Prop := anet1 = anet2.
 
-(* Функция преобразования NP в ANetDl *)
-Fixpoint NPToANetDl (start: L) (np: NP) : ANetDl :=
+(* Функция преобразования NP в ANetDl со явной индексацией *)
+Fixpoint NPToANetDl_ (index: L) (np: NP) : ANetDl :=
   match np with
-  | nil => cons (LDefault, LDefault) nil
-  | cons h t => cons (h, start + 1) (NPToANetDl (start + 1) t)
+  | nil => nil
+  | cons h nil => cons (h, 0) nil
+  | cons h t => cons (h, index - 1) (NPToANetDl_ (index - 1) t)
   end.
+
+(* Функция преобразования NP в ANetDl*)
+Definition NPToANetDl (np: NP) : ANetDl :=
+  NPToANetDl_ (length np) np.
 
 (* Функция добавления NP в ANetDl *)
 Definition AddNPToANetDl (anet: ANetDl) (np: NP) : ANetDl :=
-  let new_anet := NPToANetDl ((List.length anet) + 1) np in
-  List.app anet new_anet.
+  let new_anet := NPToANetDl_ ((length np) + (length anet)) np in
+  app new_anet anet.
 
-Compute NPToANetDl 1 [ 121, 21, 1343 ].
-(* Должно вернуть: [(121, 2); (21, 3); (1343, 4); (0,0)] *)
+Compute NPToANetDl [ 121, 21, 1343 ].
+(* Должно вернуть: [(121, 2); (21, 1); (1343, 0)] *)
 
-Compute AddNPToANetDl [(121, 2), (21, 3), (1343, 4), (0, 0)] [12, 23, 34]. 
-(* Ожидается результат: [(121, 2); (21, 3); (1343, 4); (0, 0); (12, 6); (23, 7); (34, 8); (0, 0)] *)
+Compute AddNPToANetDl [(121, 2), (21, 1), (1343, 0)] [12, 23, 34]. 
+(* Ожидается результат: [(12, 5), (23, 4), (34, 0), (121, 2), (21, 1), (1343, 0)] *)
 
-Compute AddNPToANetDl [(121, 2), (21, 3), (0, 0)] [999]. 
-(* Ожидается результат: [(121, 2); (21, 3); (9999, 5); (0, 0)] *)
+(* Функция получения дуплета из ANetDl с идентификатором L с дефолтом*)
+Definition GetDupletFromANetDl (anet: ANetDl) (index: L) : D :=
+  nth_default DDefault anet index.
 
+(* Функция получения дуплета из ANetDl с идентификатором L с опцией*)
+Definition GetDupletFromANetDlOption (anet: ANetDl) (index: L) : option D :=
+  nth_error anet index.
+
+(* Функция преобразования ANetDl в NP *)
+Fixpoint ANetDlToNP_ (anet: ANetDl) (index: L) : NP :=
+  match anet with
+  | [] => nil
+  | cons (x, next_index) tail_anet =>
+    if index =? length anet then
+      cons x (ANetDlToNP_ tail_anet next_index)
+    else
+      if index <? length anet then
+        ANetDlToNP_ tail_anet index
+      else
+        nil
+  end.
+
+(* Функция преобразования ANetDl в NP начиная с головы списка асети *)  
+Definition ANetDlToNP (anet: ANetDl) : NP := ANetDlToNP_ anet (length anet).
+
+Compute ANetDlToNP [(121, 2), (21, 1), (1343, 0)]. 
+(* Ожидается результат: [121, 21, 1343] *)
+
+Compute ANetDlToNP [(12, 5), (23, 4), (34, 0), (121, 2), (21, 1), (1343, 0)]. 
+(* Ожидается результат: [12, 23, 34] *)
+
+Compute ANetDlToNP_ [(12, 5), (23, 4), (34, 0), (121, 2), (21, 1), (1343, 0)] 6.
+(* Ожидается результат: [121, 21, 1343] *)
+
+Compute ANetDlToNP_ [(12, 5), (23, 4), (34, 0), (121, 2), (21, 1), (1343, 0)] 3.
+(* Ожидается результат: [121, 21, 1343] *)
 
 (*  Доказательства *)
 
-(* Лемма о сохранении длины векторов ассоциативной сети *)
-Lemma Vn_dim_preserved : forall {l: nat} (t: Vn l), List.length (VnToNP t) = l.
+(* Лемма о сохранении длины списков NP ассоциативной сети *)
+Lemma NP_dim_preserved : forall (np: NP), List.length np = List.length (NPToANetDl' np).
 Proof.
-  intros l t.
-  induction t.
+  intros np.
+  induction np as [|h t IH].
   - simpl. reflexivity.
-  - simpl. rewrite IHt. reflexivity.
+  - destruct t as [|h2 t2].
+    + simpl. reflexivity.
+    + simpl. apply f_equal. apply IH. 
 Qed.
+
 
 (* Лемма о взаимном обращении функций NPToVnOption и VnToNP
 
