@@ -140,7 +140,7 @@ Compute ANetDlToNP_ [(12, 5), (23, 4), (34, 0), (121, 2), (21, 1), (1343, 0)] 3.
 (*  Доказательства *)
 
 (* Лемма о сохранении длины списков NP ассоциативной сети *)
-Lemma NP_dim_preserved : forall (np: NP), List.length np = List.length (NPToANetDl' np).
+Lemma NP_dim_preserved : forall (np: NP), List.length np = List.length (NPToANetDl np).
 Proof.
   intros np.
   induction np as [|h t IH].
