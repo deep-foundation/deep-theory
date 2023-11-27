@@ -86,19 +86,17 @@ Fixpoint NPToANetDl_ (index: L) (np: NP) : ANetDl :=
   end.
 
 (* Функция преобразования NP в ANetDl*)
-Definition NPToANetDl (np: NP) : ANetDl :=
-  NPToANetDl_ (length np) np.
+Fixpoint NPToANetDl (np: NP) : ANetDl :=
+  match np with
+  | nil => nil
+  | cons h nil => cons (h, 0) nil
+  | cons h t => cons (h, length t) (NPToANetDl t)
+  end.
 
 (* Функция добавления NP в ANetDl *)
 Definition AddNPToANetDl (anet: ANetDl) (np: NP) : ANetDl :=
   let new_anet := NPToANetDl_ ((length np) + (length anet)) np in
   app new_anet anet.
-
-Compute NPToANetDl [ 121, 21, 1343 ].
-(* Должно вернуть: [(121, 2); (21, 1); (1343, 0)] *)
-
-Compute AddNPToANetDl [(121, 2), (21, 1), (1343, 0)] [12, 23, 34]. 
-(* Ожидается результат: [(12, 5), (23, 4), (34, 0), (121, 2), (21, 1), (1343, 0)] *)
 
 (* Функция получения дуплета из ANetDl с идентификатором L с дефолтом*)
 Definition GetDupletFromANetDl (anet: ANetDl) (index: L) : D :=
@@ -116,26 +114,75 @@ Fixpoint ANetDlToNP_ (anet: ANetDl) (index: L) : NP :=
     if index =? length anet then
       cons x (ANetDlToNP_ tail_anet next_index)
     else
-      if index <? length anet then
-        ANetDlToNP_ tail_anet index
-      else
-        nil
+      ANetDlToNP_ tail_anet index
   end.
+
+(* Функция отрезает и возвращает хвост ANetDl заданной длины *)
+Fixpoint ANetDl_tail_n (anet: ANetDl) (n : nat) : ANetDl :=
+  if n =? (length anet) then
+    anet
+  else
+    if n <? (length anet) then
+      match anet with
+      | [] => []
+      | cons (_, _) t => ANetDl_tail_n t n
+      end
+    else
+      [].
+
+(*
+Require Import FunInd.
+Require Import Recdef.
+Require Import Coq.Wellfounded.Wellfounded.
+
+Function ANetDl_tail_n (anet: ANetDl) (n : nat) {measure length anet} : ANetDl :=
+    if n =? (length anet) then
+        anet
+    else
+        if n <? (length anet) then
+            match anet with
+            | [] => []
+            | cons (_, _) t => ANetDl_tail_n t n
+            end
+        else
+        [].
+Proof.
+  intros.
+  destruct anet.
+  - simpl. auto.
+  - simpl. apply Lt.le_lt_n_Sm. apply Le.le_refl.
+Qed.
+
+
+Function ANetDlToNP (anet: ANetDl) {measure length anet} : NP :=
+  match anet with
+  | [] => nil
+  | cons (x, next_index) tail_anet =>
+    cons x (ANetDlToNP (ANetDl_tail_n tail_anet next_index))
+  end.
+Proof.
+  intros. 
+  unfold ANetDl_tail_n.
+  destruct anet.
+  - simpl. auto.
+  - rewrite <- teq. simpl. 
+    destruct (Nat.ltb next_index (length l)).
+    + simpl. apply Lt.le_lt_n_Sm. apply Le.le_refl.
+    + auto.
+Qed.
+*)
+
+(* Функция преобразования ANetDl в NP начиная с головы списка асети
+Fixpoint ANetDlToNP (anet: ANetDl) : NP :=
+  match anet with
+  | [] => nil
+  | cons (x, next_index) tail_anet =>
+    cons x (ANetDlToNP (ANetDl_tail_n tail_anet next_index))
+  end.*)
 
 (* Функция преобразования ANetDl в NP начиная с головы списка асети *)  
 Definition ANetDlToNP (anet: ANetDl) : NP := ANetDlToNP_ anet (length anet).
 
-Compute ANetDlToNP [(121, 2), (21, 1), (1343, 0)]. 
-(* Ожидается результат: [121, 21, 1343] *)
-
-Compute ANetDlToNP [(12, 5), (23, 4), (34, 0), (121, 2), (21, 1), (1343, 0)]. 
-(* Ожидается результат: [12, 23, 34] *)
-
-Compute ANetDlToNP_ [(12, 5), (23, 4), (34, 0), (121, 2), (21, 1), (1343, 0)] 6.
-(* Ожидается результат: [121, 21, 1343] *)
-
-Compute ANetDlToNP_ [(12, 5), (23, 4), (34, 0), (121, 2), (21, 1), (1343, 0)] 3.
-(* Ожидается результат: [121, 21, 1343] *)
 
 (*  Доказательства *)
 
@@ -151,30 +198,56 @@ Proof.
 Qed.
 
 
-(* Лемма о взаимном обращении функций NPToVnOption и VnToNP
+(* Лемма о взаимном обращении функций NPToANetDl и ANetDlToNP
 
-  H_inverse доказывает, что каждый вектор Vn без потери данных может быть преобразован в NP
- с помощью VnToNP и обратно в Vn с помощью NPToVnOption.
+  H_inverse доказывает, что каждый список NP без потери данных может быть преобразован в ANetDl
+ с помощью NPToANetDl и обратно в NP с помощью ANetDlToNP.
 
-  В формальном виде forall n: nat, forall t: Vn n, NPToVnOption n (VnToNP t) = Some t говорит о том,
- что для всякого натурального числа n и каждого вектора Vn длины n,
- мы можем преобразовать Vn в NP с помощью VnToNP,
- затем обратно преобразовать результат в Vn с помощью NPToVnOption n,
- и в итоге получать тот же вектор Vn, что и в начале.
+  В формальном виде forall (np: NP), ANetDlToNP (NPToANetDl np) = np говорит о том,
+ что для всякого список NP, мы можем преобразовать NP в ANetDl с помощью NPToANetDl,
+ затем обратно преобразовать результат в NP с помощью ANetDlToNP,
+ и в итоге получать тот же список NP, что и в начале.
 
   Это свойство очень важно, потому что оно гарантирует,
- что эти две функции образуют обратные друг к другу пары функций на преобразуемом круге векторов Vn и NP.
+ что эти две функции образуют обратные друг к другу пары функций на преобразуемом круге списоке NP и ANetDl.
  Когда вы применяете обе функции к значениям в преобразуемом круге, вы в итоге получаете исходное значение.
  Это означает, что никакая информация не теряется при преобразованиях,
- так что вы можете свободно конвертировать между Vn и NP,
+ так что вы можете свободно конвертировать списком NP и ANetDl,
  если это требуется в вашей реализации или доказательствах.
  *)
-Lemma H_inverse: forall n: nat, forall t: Vn n, NPToVnOption n (VnToNP t) = Some t.
+Theorem NP_ANetDl_NP_inverse: forall (np: NP),
+  ANetDlToNP_ (NPToANetDl np) (length np) = np.
 Proof.
-  intros n.
-  induction t as [| h n' t' IH].
-  - simpl. reflexivity.
-  - simpl. rewrite IH. reflexivity.
+  intros np.
+  induction np as [| h t IH].
+  - reflexivity.
+  - simpl. 
+    case_eq t; intros.  
+    + reflexivity. 
+    + simpl.
+      rewrite NP_dim_preserved. 
+      rewrite H in IH.
+      reflexivity.
+Qed.
+
+Theorem NP_ANetDl_NP_inverse: forall (np: NP),
+  ANetDlToNP_ (NPToANetDl np) (length np) = np.
+Proof.
+  intros np.
+  induction np as [| h t IH].
+  
+  - simpl. reflexivity.  (* базовый случай, когда np пустой *)
+   
+  - simpl.              (* индуктивный шаг *)
+    destruct t as [|h2 t2].
+  
+    + simpl. reflexivity. (* случай, когда np имеет ровно один элемент *)
+
+    + simpl. 
+      rewrite NP_dim_preserved.
+      simpl.
+      rewrite IH.
+      reflexivity.
 Qed.
 
 
@@ -193,19 +266,35 @@ Qed.
 
     ∀ anetvⁿ : L → Vⁿ, преобразованиеобратно(преобразованиевперед(anetvⁿ)) = anetvⁿ.
 *)
-
+(*
 Theorem anetf_equiv_after_transforms : forall {n: nat} (anet: ANetVf n),
   ANetVf_equiv anet (fun id => match NPToVnOption n ((ANetVfToANetLf anet) id) with
                             | Some t => t
                             | None   => anet id
                             end).
-Proof.
-  intros n net id.
-  unfold ANetVfToANetLf.
-  simpl.
-  rewrite H_inverse.
-  reflexivity.
-Qed.
-
+*)
 
 (*  Примеры *)
+
+Compute NPToANetDl [ 121, 21, 1343 ].
+(* Должно вернуть: [(121, 2); (21, 1); (1343, 0)] *)
+
+Compute AddNPToANetDl [(121, 2), (21, 1), (1343, 0)] [12, 23, 34]. 
+(* Ожидается результат: [(12, 5), (23, 4), (34, 0), (121, 2), (21, 1), (1343, 0)] *)
+
+
+Compute ANetDlToNP [(121, 2), (21, 1), (1343, 0)]. 
+(* Ожидается результат: [121, 21, 1343] *)
+
+Compute ANetDlToNP [(12, 5), (23, 4), (34, 0), (121, 2), (21, 1), (1343, 0)]. 
+(* Ожидается результат: [12, 23, 34] *)
+
+Compute ANetDlToNP_ [(12, 5), (23, 4), (34, 0), (121, 2), (21, 1), (1343, 0)] 6.
+(* Ожидается результат: [12, 23, 34] *)
+
+Compute ANetDlToNP_ [(12, 5), (23, 4), (34, 0), (121, 2), (21, 1), (1343, 0)] 3.
+(* Ожидается результат: [121, 21, 1343] *)
+
+
+
+
