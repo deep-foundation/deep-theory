@@ -1,6 +1,16 @@
 [![Gitpod](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/linksplatform/Theory) 
 [![Discord](https://badgen.net/badge/icon/discord?icon=discord&label&color=purple)](https://discord.gg/eEXJyjWv5e)
 
+
+
+```mermaid
+graph TB;
+    A[ФБО] -- Далее --> B[Типы атрибутов]
+    B -- Да --> C[Атрибуты]
+    C -- Да --> E[Кортежи атрибутов (записей)]
+    I -- Да --> J[Таблицы кортежей (таблицы)]
+```
+
 # Theory
 Links Theory
 
