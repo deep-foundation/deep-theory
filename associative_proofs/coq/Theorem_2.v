@@ -36,20 +36,50 @@
 9. Ассоциативная сеть вложенных упорядоченных пар: anetl : L → NP,
   где NP = {(∅,∅) | (l,np), l ∈ L, np ∈ NP} - это множество вложенных упорядоченных пар,
   которое состоит из пустых пар, и пар содержащих один или более элементов.
-*)
 
+  Про ФБО:
+  
+1. Функция агрегирования в ТМ (теории множеств) - это правило или процедура, которая каждому конкретному элементу сопоставляет определённое множество.
+2. В теории множеств, БО (бинарное отношение) можно рассматривать как подмножество ПП (прямого произведения) двух множеств.
+    Таким образом, УП (упорядоченные пары), составляющие это бинарное отношение, являются элементами множества, описывающего данное отношение.
+3. Сопоставление элемента к соответствующему множеству в рамках функции агрегирования можно представить в виде упорядоченной пары (элемент, множество).
+    Таким образом, функция агрегирования может быть представлена как функциональное бинарное отношение,
+    где каждая упорядоченная пара уникально сопоставляет элемент и его агрегированное множество.
+4. Если мы имеем несколько функций агрегирования, каждую из которых определяется своим функциональным бинарным отношением,
+    то один и тот же элемент может быть сопоставлен разным множествам в рамках разных функций агрегирования.
+5. Исходя из предыдущих утверждений, упорядоченная пара (элемент, множество) может быть рассматриваема как элемент в контексте функции агрегирования.
+   Сама функция агрегирования, представляющая набор таких упорядоченных пар, может быть рассматриваема как множество.
+   Таким образом, функцию агрегирования можно описать и интерпретировать как специфическое множество в рамках теории множеств.
+6. Исходя из определения функции агрегирования как множества упорядоченных пар, каждое такое множество можно интерпретировать как функцию агрегирования,
+    где каждый элемент этого множества является упорядоченной парой (элемент, множество). Далее, каждая такая упорядоченная пара интерпретируется как элемент.
+    Это утверждение отражает, что в контексте теории множеств, функции и элементы можно интерпретировать в рамках друг друга.
+*)
+Require Import PeanoNat.
 Require Import Vector.
 Require Import List.
 Require Import Coq.Init.Datatypes.
-Require Import PeanoNat.
 Import ListNotations.
 Import VectorNotations.
+
 
 (* Последовательность идентификаторов векторов: L ⊆ ℕ₀ *)
 Definition L := nat.
 
 (* Дефолтное значение L: ноль *)
 Definition LDefault : L := 0.
+
+(* Множество векторов идентификаторов длины n ∈ ℕ₀: Vn ⊆ Lⁿ *)
+Definition Vn (n : nat) := t L n.
+
+(* Дефолтное значение Vn *)
+Definition VnDefault (n : nat) : Vn n := Vector.const LDefault n.
+
+(* Множество всех ассоциаций: A = L × Vn *)
+Definition A (n : nat) := prod L (Vn n).
+
+(* Ассоциативная сеть векторов длины n (или n-мерная асеть) из семейства функций {anetvⁿ : L → Vn} *)
+Definition ANetVf (n : nat) := L -> Vn n.
+Definition ANetVl (n : nat) := list (Vn n).
 
 (* Вложенные упорядоченные пары *)
 Definition NP := list L.
@@ -70,6 +100,8 @@ Definition DDefault : D := (LDefault, LDefault).
 (* Ассоциативная сеть дуплетов (или двумерная асеть): anetd : L → L² *)
 Definition ANetDf := L -> D.
 Definition ANetDl := list D.
+
+
 
 (* Предикат эквивалентности для ассоциативных сетей дуплетов ANetDf *)
 Definition ANetDf_equiv (anet1: ANetDf) (anet2: ANetDf) : Prop := forall id, anet1 id = anet2 id.
@@ -130,47 +162,6 @@ Fixpoint ANetDl_tail_n (anet: ANetDl) (n : nat) : ANetDl :=
     else
       [].
 
-(*
-Require Import FunInd.
-Require Import Recdef.
-Require Import Coq.Wellfounded.Wellfounded.
-
-Function ANetDl_tail_n (anet: ANetDl) (n : nat) {measure length anet} : ANetDl :=
-    if n =? (length anet) then
-        anet
-    else
-        if n <? (length anet) then
-            match anet with
-            | [] => []
-            | cons (_, _) t => ANetDl_tail_n t n
-            end
-        else
-        [].
-Proof.
-  intros.
-  destruct anet.
-  - simpl. auto.
-  - simpl. apply Lt.le_lt_n_Sm. apply Le.le_refl.
-Qed.
-
-
-Function ANetDlToNP (anet: ANetDl) {measure length anet} : NP :=
-  match anet with
-  | [] => nil
-  | cons (x, next_index) tail_anet =>
-    cons x (ANetDlToNP (ANetDl_tail_n tail_anet next_index))
-  end.
-Proof.
-  intros. 
-  unfold ANetDl_tail_n.
-  destruct anet.
-  - simpl. auto.
-  - rewrite <- teq. simpl. 
-    destruct (Nat.ltb next_index (length l)).
-    + simpl. apply Lt.le_lt_n_Sm. apply Le.le_refl.
-    + auto.
-Qed.
-*)
 
 (* Функция преобразования ANetDl в NP начиная с головы списка асети
 Fixpoint ANetDlToNP (anet: ANetDl) : NP :=
@@ -297,4 +288,45 @@ Compute ANetDlToNP_ [(12, 5), (23, 4), (34, 0), (121, 2), (21, 1), (1343, 0)] 3.
 
 
 
+(*
+Require Import FunInd.
+Require Import Recdef.
+Require Import Coq.Wellfounded.Wellfounded.
+
+Function ANetDl_tail_n (anet: ANetDl) (n : nat) {measure length anet} : ANetDl :=
+    if n =? (length anet) then
+        anet
+    else
+        if n <? (length anet) then
+            match anet with
+            | [] => []
+            | cons (_, _) t => ANetDl_tail_n t n
+            end
+        else
+        [].
+Proof.
+  intros.
+  destruct anet.
+  - simpl. auto.
+  - simpl. apply Lt.le_lt_n_Sm. apply Le.le_refl.
+Qed.
+
+
+Function ANetDlToNP (anet: ANetDl) {measure length anet} : NP :=
+  match anet with
+  | [] => nil
+  | cons (x, next_index) tail_anet =>
+    cons x (ANetDlToNP (ANetDl_tail_n tail_anet next_index))
+  end.
+Proof.
+  intros. 
+  unfold ANetDl_tail_n.
+  destruct anet.
+  - simpl. auto.
+  - rewrite <- teq. simpl. 
+    destruct (Nat.ltb next_index (length l)).
+    + simpl. apply Lt.le_lt_n_Sm. apply Le.le_refl.
+    + auto.
+Qed.
+*)
 
