@@ -1,16 +1,6 @@
 [![Gitpod](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/linksplatform/Theory) 
 [![Discord](https://badgen.net/badge/icon/discord?icon=discord&label&color=purple)](https://discord.gg/eEXJyjWv5e)
 
-
-
-```mermaid
-graph TB;
-    A[Функциональные Бинарные Отношения] -- Далее --> B[Типы атрибутов]
-    B -- Далее --> C[Атрибуты]
-    C -- Далее --> E[Кортежи атрибутов]
-    E -- Далее --> J[Таблицы кортежей]
-```
-
 # Theory
 Links Theory
 
@@ -54,6 +44,15 @@ Links Theory
 
 
 ##  Этапы доказательства эквивалентности реляционной модели и ассоциативной сети дуплетов
+
+```mermaid
+graph TB;
+    A[Функциональные Бинарные Отношения] -- Далее --> B[Типы атрибутов]
+    B -- Далее --> C[Атрибуты]
+    C -- Далее --> E[Кортежи атрибутов]
+    E -- Далее --> J[Таблицы кортежей]
+```
+
 
 **ФБО**: Функциональные бинарные отношения необходимы для хранения функций агрегирования и типизирования.
 
