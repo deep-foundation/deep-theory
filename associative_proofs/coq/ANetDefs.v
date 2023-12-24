@@ -275,6 +275,15 @@ Compute testTuplesNet 0.
 *)
 
 
+(*  Требования к представлению вложенных УП и асетей дуплетов в виде списков:
+
+1. Нумерация с нуля с головы списка
+2. Указатель на следующую по порядку вложенную УП
+3. Возможность добавления вложенной УП в конец списка УП
+4. Возможность добавления списков в конец асети дулпетов
+5. Произвольный доступ к асети дуплетов по идентификатору дуплета
+*)
+
 (* Предикат эквивалентности для ассоциативных сетей дуплетов ANetDf *)
 Definition ANetDf_equiv (anet1: ANetDf) (anet2: ANetDf) : Prop := forall id, anet1 id = anet2 id.
 
@@ -285,22 +294,16 @@ Definition ANetDl_equiv (anet1: ANetDl) (anet2: ANetDl) : Prop := anet1 = anet2.
 Fixpoint NPToANetDl_ (index: L) (np: NP) : ANetDl :=
   match np with
   | nil => nil
-  | cons h nil => cons (h, 0) nil
-  | cons h t => cons (h, index - 1) (NPToANetDl_ (index - 1) t)
+  | cons h nil => cons (h, LDefault) nil
+  | cons h t => cons (h, index + 1) (NPToANetDl_ (index + 1) t)
   end.
 
 (* Функция преобразования NP в ANetDl*)
-Fixpoint NPToANetDl (np: NP) : ANetDl :=
-  match np with
-  | nil => nil
-  | cons h nil => cons (h, 0) nil
-  | cons h t => cons (h, length t) (NPToANetDl t)
-  end.
+Definition NPToANetDl (np: NP) : ANetDl := NPToANetDl_ LDefault np.
 
 (* Функция добавления NP в ANetDl *)
 Definition AddNPToANetDl (anet: ANetDl) (np: NP) : ANetDl :=
-  let new_anet := NPToANetDl_ ((length np) + (length anet)) np in
-  app new_anet anet.
+  NPToANetDl_ (length anet) np.
 
 (* Функция получения дуплета из ANetDl с идентификатором L с дефолтом*)
 Definition GetDupletFromANetDl (anet: ANetDl) (index: L) : D :=
@@ -310,15 +313,15 @@ Definition GetDupletFromANetDl (anet: ANetDl) (index: L) : D :=
 Definition GetDupletFromANetDlOption (anet: ANetDl) (index: L) : option D :=
   nth_error anet index.
 
-(* Функция преобразования ANetDl в NP *)
-Fixpoint ANetDlToNP_ (anet: ANetDl) (index: L) : NP :=
+(* Функция чтения NP из ANetDl по индексу *)
+Fixpoint ANetDl_readNP (anet: ANetDl) (index: L) : NP :=
   match anet with
   | nil => nil
   | cons (x, next_index) tail_anet =>
     if index =? length anet then
-      cons x (ANetDlToNP_ tail_anet next_index)
+      cons x (ANetDl_readNP tail_anet next_index)
     else
-      ANetDlToNP_ tail_anet index
+      ANetDl_readNP tail_anet index
   end.
 
 (* Функция отрезает и возвращает хвост ANetDl заданной длины *)
@@ -394,29 +397,6 @@ Proof.
 Qed.
 *)
 
-
-(*
-  Теорема обертывания и восстановления ассоциативной сети векторов:
-
-Пусть дана ассоциативная сеть векторов длины n, обозначенная как anetvⁿ : L → Vⁿ.
-Определим операцию отображения этой сети в ассоциативную сеть вложенных упорядоченных пар anetl : L → NP, где NP = {(∅,∅) | (l,np), l ∈ L, np ∈ NP}.
-Затем определим обратное отображение из ассоциативной сети вложенных упорядоченных пар обратно в ассоциативную сеть векторов длины n.
-
-  Теорема утверждает:
-
-Для любой ассоциативной сети векторов длины n, anetvⁿ, применение операции преобразования в ассоциативную сеть вложенных упорядоченных пар
- и обратное преобразование обратно в ассоциативную сеть векторов длины n обеспечивает восстановление исходной сети anetvⁿ.
-То есть, если мы преобразуем anetvⁿ в anetl и потом обратно в anetvⁿ, то мы получим исходную ассоциативную сеть векторов anetvⁿ. Иначе говоря:
-
-    ∀ anetvⁿ : L → Vⁿ, преобразованиеобратно(преобразованиевперед(anetvⁿ)) = anetvⁿ.
-*)
-(*
-Theorem anetf_equiv_after_transforms : forall {n: nat} (anet: ANetVf n),
-  ANetVf_equiv anet (fun id => match NPToVnOption n ((ANetVfToANetLf anet) id) with
-                            | Some t => t
-                            | None   => anet id
-                            end).
-*)
 
 (*  Примеры *)
 
