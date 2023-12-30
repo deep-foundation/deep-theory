@@ -38,6 +38,7 @@
   которое состоит из пустых пар, и пар содержащих один или более элементов.
 *)
 Require Import PeanoNat.
+Require Import Coq.Init.Nat.
 Require Import Vector.
 Require Import List.
 Require Import Coq.Init.Datatypes.
@@ -342,7 +343,8 @@ Compute testTuplesNet 0.
 
   Вариант описания значений типов:
 
-1. Допустим, что связи образуют списки экземпляров типов: первый компонент ссылается на значение типа (элемент множества), второй на хвост списка значений (элементов множеств)
+1. Допустим, что связи образуют списки экземпляров типов: первый компонент ссылается на значение типа (элемент множества),
+  второй на хвост списка значений (элементов множеств)
   Данная новая связь может быть и новым значением типа, и хвостом списка.
   Таким образом новую связь можно отнести ко многим спискам как значение головы.
 *)
@@ -367,7 +369,7 @@ Fixpoint NPToANetDl_ (offset: L) (np: NP) : ANetDl :=
   match np with
   | nil => nil
   | cons h nil => cons (h, LDefault) nil
-  | cons h t => cons (h, offset + 1) (NPToANetDl_ (offset + 1) t)
+  | cons h t => cons (h, S offset) (NPToANetDl_ (S offset) t)
   end.
 
 (* Функция преобразования NP в ANetDl*)
@@ -377,7 +379,7 @@ Definition NPToANetDl (np: NP) : ANetDl := NPToANetDl_ LDefault np.
 Definition AddNPToANetDl (anet: ANetDl) (np: NP) : ANetDl :=
   app anet (NPToANetDl_ (length anet) np).
 
-(* Функция отрезает и возвращает хвост ANetDl заданной длины *)
+(* Функция отрезает голову и возвращает хвост ANetDl *)
 Fixpoint ANetDl_behead (anet: ANetDl) (offset : nat) : ANetDl :=
   match offset with
   | 0 => anet
@@ -387,6 +389,21 @@ Fixpoint ANetDl_behead (anet: ANetDl) (offset : nat) : ANetDl :=
     | cons h t => ANetDl_behead t n'
     end
   end.
+
+(* Функция преобразования ANetDl в NP с индексации в начале ANetDl начиная с offset*)
+Fixpoint ANetDlToNP_ (anet: ANetDl) (offset: nat) (index: nat): NP :=
+  match anet with
+  | nil => nil
+  | cons (x, next_index) tail_anet =>
+    if offset =? index then
+      cons x (ANetDlToNP_ tail_anet (S offset) next_index)
+    else
+      ANetDlToNP_ tail_anet (S offset) index
+  end.
+
+
+
+
 
 (* Функция получения дуплета из ANetDl с идентификатором L с дефолтом*)
 Definition GetDupletFromANetDl (anet: ANetDl) (index: L) : D :=
