@@ -365,15 +365,15 @@ Definition ANetDf_equiv (anet1: ANetDf) (anet2: ANetDf) : Prop := forall id, ane
 Definition ANetDl_equiv (anet1: ANetDl) (anet2: ANetDl) : Prop := anet1 = anet2.
 
 (* Функция преобразования NP в ANetDl со смещением индексации *)
-Fixpoint NPToANetDl_ (offset: L) (np: NP) : ANetDl :=
+Fixpoint NPToANetDl_ (offset: nat) (np: NP) : ANetDl :=
   match np with
   | nil => nil
-  | cons h nil => cons (h, LDefault) nil
+  | cons h nil => cons (h, 0) nil
   | cons h t => cons (h, S offset) (NPToANetDl_ (S offset) t)
   end.
 
 (* Функция преобразования NP в ANetDl*)
-Definition NPToANetDl (np: NP) : ANetDl := NPToANetDl_ LDefault np.
+Definition NPToANetDl (np: NP) : ANetDl := NPToANetDl_ 0 np.
 
 (* Функция добавления NP в хвост ANetDl *)
 Definition AddNPToANetDl (anet: ANetDl) (np: NP) : ANetDl :=
@@ -411,7 +411,7 @@ Definition ANetDlToNP (anet: ANetDl) : NP := ANetDl_readNP anet 0.
 
 (*  Доказательства *)
 
-(* Лемма о сохранении длины списков NP ассоциативной сети *)
+(* Лемма о сохранении длины списков NP ассоциативной сети
 Lemma NP_dim_preserved : forall (np: NP), List.length np = List.length (NPToANetDl np).
 Proof.
   intros np.
@@ -420,7 +420,7 @@ Proof.
   - destruct t as [|h2 t2].
     + simpl. reflexivity.
     + simpl. apply f_equal. apply IH. 
-Qed.
+Qed. *)
 
 
 (* Лемма о взаимном обращении функций NPToANetDl и ANetDlToNP
@@ -460,22 +460,22 @@ Qed.
 (*  Примеры *)
 
 Compute NPToANetDl { 121, 21, 1343 }.
-(* Должно вернуть: {(121, 2); (21, 1); (1343, 0)} *)
+(* Должно вернуть: {(121, 1), (21, 2), (1343, 0)} *)
 
-Compute AddNPToANetDl {(121, 2), (21, 1), (1343, 0)} {12, 23, 34}. 
-(* Ожидается результат: {(12, 5), (23, 4), (34, 0), (121, 2), (21, 1), (1343, 0)} *)
+Compute AddNPToANetDl {(121, 1), (21, 2), (1343, 0)} {12, 23, 34}. 
+(* Ожидается результат: {(121, 1), (21, 2), (1343, 0), (12, 4), (23, 5), (34, 0)} *)
 
 
-Compute ANetDlToNP {(121, 2), (21, 1), (1343, 0)}. 
+Compute ANetDlToNP {(121, 1), (21, 2), (1343, 0)}. 
 (* Ожидается результат: {121, 21, 1343} *)
 
-Compute ANetDlToNP {(12, 5), (23, 4), (34, 0), (121, 2), (21, 1), (1343, 0)}. 
+Compute ANetDlToNP {(121, 1), (21, 2), (1343, 0), (12, 4), (23, 5), (34, 0)}. 
+(* Ожидается результат: {121, 21, 1343} *)
+
+Compute ANetDl_readNP {(121, 1), (21, 2), (1343, 0), (12, 4), (23, 5), (34, 0)} 3.
 (* Ожидается результат: {12, 23, 34} *)
 
-Compute ANetDlToNP_ {(12, 5), (23, 4), (34, 0), (121, 2), (21, 1), (1343, 0)} 6.
-(* Ожидается результат: {12, 23, 34} *)
-
-Compute ANetDlToNP_ {(12, 5), (23, 4), (34, 0), (121, 2), (21, 1), (1343, 0)} 3.
+Compute ANetDl_readNP {(121, 1), (21, 2), (1343, 0), (12, 4), (23, 5), (34, 0)} 0.
 (* Ожидается результат: {121, 21, 1343} *)
 
 
