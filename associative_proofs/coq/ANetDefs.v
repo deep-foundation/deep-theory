@@ -401,53 +401,12 @@ Fixpoint ANetDlToNP_ (anet: ANetDl) (offset: nat) (index: nat): NP :=
       ANetDlToNP_ tail_anet (S offset) index
   end.
 
-
-
-
-
-(* Функция получения дуплета из ANetDl с идентификатором L с дефолтом*)
-Definition GetDupletFromANetDl (anet: ANetDl) (index: L) : D :=
-  nth_default DDefault anet index.
-
-(* Функция получения дуплета из ANetDl с идентификатором L с опцией*)
-Definition GetDupletFromANetDlOption (anet: ANetDl) (index: L) : option D :=
-  nth_error anet index.
-
 (* Функция чтения NP из ANetDl по индексу *)
-Fixpoint ANetDl_readNP (anet: ANetDl) (index: L) : NP :=
-  match anet with
-  | nil => nil
-  | cons (x, next_index) tail_anet =>
-    if index =? length anet then
-      cons x (ANetDl_readNP tail_anet next_index)
-    else
-      ANetDl_readNP tail_anet index
-  end.
-
-(* Функция отрезает и возвращает хвост ANetDl заданной длины *)
-Fixpoint ANetDl_tail_n (anet: ANetDl) (n : nat) : ANetDl :=
-  if n =? (length anet) then
-    anet
-  else
-    if n <? (length anet) then
-      match anet with
-      | nil => nil
-      | cons (_, _) t => ANetDl_tail_n t n
-      end
-    else
-      nil.
-
-
-(* Функция преобразования ANetDl в NP начиная с головы списка асети
-Fixpoint ANetDlToNP (anet: ANetDl) : NP :=
-  match anet with
-  | [] => nil
-  | cons (x, next_index) tail_anet =>
-    cons x (ANetDlToNP (ANetDl_tail_n tail_anet next_index))
-  end.*)
+Definition ANetDl_readNP (anet: ANetDl) (index: nat) : NP :=
+  ANetDlToNP_ anet 0 index.
 
 (* Функция преобразования ANetDl в NP начиная с головы списка асети *)  
-Definition ANetDlToNP (anet: ANetDl) : NP := ANetDlToNP_ anet (length anet).
+Definition ANetDlToNP (anet: ANetDl) : NP := ANetDl_readNP anet 0.
 
 
 (*  Доказательства *)
