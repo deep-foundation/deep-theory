@@ -368,7 +368,7 @@ Definition ANetDl_equiv (anet1: ANetDl) (anet2: ANetDl) : Prop := anet1 = anet2.
 Fixpoint NPToANetDl_ (offset: nat) (np: NP) : ANetDl :=
   match np with
   | nil => nil
-  | cons h nil => cons (h, 0) nil
+  | cons h nil => cons (h, offset) nil
   | cons h t => cons (h, S offset) (NPToANetDl_ (S offset) t)
   end.
 
@@ -378,17 +378,6 @@ Definition NPToANetDl (np: NP) : ANetDl := NPToANetDl_ 0 np.
 (* Функция добавления NP в хвост ANetDl *)
 Definition AddNPToANetDl (anet: ANetDl) (np: NP) : ANetDl :=
   app anet (NPToANetDl_ (length anet) np).
-
-(* Функция отрезает голову и возвращает хвост ANetDl *)
-Fixpoint ANetDl_behead (anet: ANetDl) (offset : nat) : ANetDl :=
-  match offset with
-  | 0 => anet
-  | S n' =>
-    match anet with
-    | nil => nil
-    | cons h t => ANetDl_behead t n'
-    end
-  end.
 
 (* Функция преобразования ANetDl в NP с индексации в начале ANetDl начиная с offset*)
 Fixpoint ANetDlToNP_ (anet: ANetDl) (offset: nat) (index: nat): NP :=
@@ -411,17 +400,18 @@ Definition ANetDlToNP (anet: ANetDl) : NP := ANetDl_readNP anet 0.
 
 (*  Доказательства *)
 
-(* Лемма о сохранении длины списков NP ассоциативной сети
-Lemma NP_dim_preserved : forall (np: NP), List.length np = List.length (NPToANetDl np).
+(* Лемма о сохранении длины списков NP ассоциативной сети *)
+Lemma NP_dim_preserved : forall (offset: nat) (np: NP), 
+    length np = length (NPToANetDl_ offset np).
 Proof.
-  intros np.
-  induction np as [|h t IH].
+  intros offset np.
+  generalize dependent offset. 
+  induction np as [| n np' IHnp']; intros offset.
   - simpl. reflexivity.
-  - destruct t as [|h2 t2].
-    + simpl. reflexivity.
-    + simpl. apply f_equal. apply IH. 
-Qed. *)
-
+  - destruct np' as [| m np'']; simpl; simpl in IHnp'.
+    + reflexivity.
+    + simpl in IHnp'. rewrite IHnp' with (offset := S offset). reflexivity.
+Qed.
 
 (* Лемма о взаимном обращении функций NPToANetDl и ANetDlToNP
 
@@ -485,20 +475,42 @@ Compute ANetDl_readNP {(121, 1), (21, 2), (1343, 0), (12, 4), (23, 5), (34, 0)} 
 
 Данное преобразование можно делать по разному: с сохранением исходных идентификаторов векторов
 либо с переиндексацией. Переиндексацию можно не делать если написать дополнительную функцию для
-асети дуплетов которая возвращает вложенную упорядоченную пара по её идентификатору.
+асети дуплетов которая возвращает вложенную упорядоченную пару по её идентификатору.
 *)
 
+(* Функция добавления ANetLl в ANetDl *)
 Fixpoint AddANetLlToANetDl (anetd: ANetDl) (anetl: ANetLl) : ANetDl :=
   match anetl with
   | nil => anetd
   | cons h t => AddANetLlToANetDl (AddNPToANetDl anetd h) t
   end.
 
-
+(* Функция преобразования ANetLl в ANetDl *)
 Definition ANetLlToANetDl (anetl: ANetLl) : ANetDl :=
   match anetl with
   | nil => nil
   | cons h t => AddANetLlToANetDl (NPToANetDl h) t
   end.
+
+(* Функция поиска NP в ANetDl по её порядковому номеру. Возвращает offset NP *)
+Fixpoint ANetDl_readNP (anet: ANetDl) (index: nat) : NP :=
+  match anet with
+  | nil => length anet
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
