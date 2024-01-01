@@ -400,7 +400,7 @@ Definition ANetDlToNP (anet: ANetDl) : NP := ANetDl_readNP anet 0.
 
 (*  Доказательства *)
 
-(* Лемма о сохранении длины списков NP ассоциативной сети *)
+(* Лемма о сохранении длины списков NP в ассоциативной сети дуплетов *)
 Lemma NP_dim_preserved : forall (offset: nat) (np: NP), 
     length np = length (NPToANetDl_ offset np).
 Proof.
@@ -410,8 +410,9 @@ Proof.
   - simpl. reflexivity.
   - destruct np' as [| m np'']; simpl; simpl in IHnp'.
     + reflexivity.
-    + simpl in IHnp'. rewrite IHnp' with (offset := S offset). reflexivity.
+    + rewrite IHnp' with (offset := S offset). reflexivity.
 Qed.
+
 
 (* Лемма о взаимном обращении функций NPToANetDl и ANetDlToNP
 
@@ -450,23 +451,25 @@ Qed.
 (*  Примеры *)
 
 Compute NPToANetDl { 121, 21, 1343 }.
-(* Должно вернуть: {(121, 1), (21, 2), (1343, 0)} *)
+(* Должно вернуть: {(121, 1), (21, 2), (1343, 2)} *)
 
-Compute AddNPToANetDl {(121, 1), (21, 2), (1343, 0)} {12, 23, 34}. 
-(* Ожидается результат: {(121, 1), (21, 2), (1343, 0), (12, 4), (23, 5), (34, 0)} *)
+Compute AddNPToANetDl {(121, 1), (21, 2), (1343, 2)} {12, 23, 34}. 
+(* Ожидается результат: {(121, 1), (21, 2), (1343, 2), (12, 4), (23, 5), (34, 5)} *)
 
 
-Compute ANetDlToNP {(121, 1), (21, 2), (1343, 0)}. 
+Compute ANetDlToNP {(121, 1), (21, 2), (1343, 2)}. 
 (* Ожидается результат: {121, 21, 1343} *)
 
-Compute ANetDlToNP {(121, 1), (21, 2), (1343, 0), (12, 4), (23, 5), (34, 0)}. 
+Compute ANetDlToNP {(121, 1), (21, 2), (1343, 2), (12, 4), (23, 5), (34, 5)}. 
 (* Ожидается результат: {121, 21, 1343} *)
 
-Compute ANetDl_readNP {(121, 1), (21, 2), (1343, 0), (12, 4), (23, 5), (34, 0)} 3.
+Compute ANetDl_readNP {(121, 1), (21, 2), (1343, 2), (12, 4), (23, 5), (34, 5)} 0.
+(* Ожидается результат: {121, 21, 1343} *)
+
+Compute ANetDl_readNP {(121, 1), (21, 2), (1343, 2), (12, 4), (23, 5), (34, 5)} 3.
 (* Ожидается результат: {12, 23, 34} *)
 
-Compute ANetDl_readNP {(121, 1), (21, 2), (1343, 0), (12, 4), (23, 5), (34, 0)} 0.
-(* Ожидается результат: {121, 21, 1343} *)
+
 
 
 (*
@@ -492,17 +495,51 @@ Definition ANetLlToANetDl (anetl: ANetLl) : ANetDl :=
   | cons h t => AddANetLlToANetDl (NPToANetDl h) t
   end.
 
-(* Функция поиска NP в ANetDl по её порядковому номеру. Возвращает offset NP *)
-Fixpoint ANetDl_readNP (anet: ANetDl) (index: nat) : NP :=
+
+(* Функция поиска NP в хвосте ANetDl начинающемуся с offset по её порядковому номеру. Возвращает offset NP *)
+Fixpoint ANetDl_offsetNP_ (anet: ANetDl) (offset: nat) (index: nat) : nat :=
   match anet with
-  | nil => length anet
+  | nil => offset + (length anet)
+  | cons (_, next_index) tail_anet =>
+    match index with
+    | O => offset
+    | S index' => 
+      if offset =? next_index then
+        ANetDl_offsetNP_ tail_anet (S offset) index'
+      else
+        ANetDl_offsetNP_ tail_anet (S offset) index
+    end
+  end.
 
 
+(* Функция поиска NP в ANetDl по её порядковому номеру. Возвращает offset NP *)
+Definition ANetDl_offsetNP (anet: ANetDl) (index: nat) : nat :=
+  ANetDl_offsetNP_ anet 0 index.
 
 
+(*  Примеры *)
+
+Definition test_anetl := { {121, 21, 1343}, {12, 23}, {34}, {121, 21, 1343}, {12, 23}, {34} }.
+Definition test_anetd := ANetLlToANetDl test_anetl.
+
+Compute test_anetd.
+(* Ожидается результат:
+ {(121, 1), (21, 2), (1343, 2),
+  (12, 4), (23, 4),
+  (34, 5),
+  (121, 7), (21, 8), (1343, 8),
+  (12, 10), (23, 10),
+  (34, 11)} *)
 
 
-
+Compute ANetDl_offsetNP test_anetd 0.
+Compute ANetDl_offsetNP test_anetd 1.
+Compute ANetDl_offsetNP test_anetd 2.
+Compute ANetDl_offsetNP test_anetd 3.
+Compute ANetDl_offsetNP test_anetd 4.
+Compute ANetDl_offsetNP test_anetd 5.
+Compute ANetDl_offsetNP test_anetd 6.
+Compute ANetDl_offsetNP test_anetd 7.
 
 
 
