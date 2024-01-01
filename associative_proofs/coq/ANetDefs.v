@@ -479,4 +479,26 @@ Compute ANetDl_readNP {(121, 1), (21, 2), (1343, 0), (12, 4), (23, 5), (34, 0)} 
 (* Ожидается результат: {121, 21, 1343} *)
 
 
+(*
+  Теперь всё готово для преобразования асети вложенных упорядоченных пар: anetl : L → NP
+в асеть дуплетов.
+
+Данное преобразование можно делать по разному: с сохранением исходных идентификаторов векторов
+либо с переиндексацией. Переиндексацию можно не делать если написать дополнительную функцию для
+асети дуплетов которая возвращает вложенную упорядоченную пара по её идентификатору.
+*)
+
+Fixpoint AddANetLlToANetDl (anetd: ANetDl) (anetl: ANetLl) : ANetDl :=
+  match anetl with
+  | nil => anetd
+  | cons h t => AddANetLlToANetDl (AddNPToANetDl anetd h) t
+  end.
+
+
+Definition ANetLlToANetDl (anetl: ANetLl) : ANetDl :=
+  match anetl with
+  | nil => nil
+  | cons h t => AddANetLlToANetDl (NPToANetDl h) t
+  end.
+
 
