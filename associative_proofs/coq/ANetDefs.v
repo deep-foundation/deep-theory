@@ -255,7 +255,6 @@ Definition testTuplesNet : ANetVf 3 :=
 
 Compute testTuplesNet 0.
 
-
 (*
   Про ФБО (функциональное бинарное отношение) в ТМ (теории множеств):
   
@@ -516,6 +515,10 @@ Fixpoint ANetDl_offsetNP_ (anet: ANetDl) (offset: nat) (index: nat) : nat :=
 Definition ANetDl_offsetNP (anet: ANetDl) (index: nat) : nat :=
   ANetDl_offsetNP_ anet 0 index.
 
+(* Функция преобразования ANetVl в ANetDl *)
+Definition ANetVlToANetDl {n : nat} (anetv: ANetVl n) : ANetDl :=
+  ANetLlToANetDl (ANetVlToANetLl anetv).
+
 
 (*  Примеры *)
 
@@ -541,6 +544,10 @@ Compute ANetDl_offsetNP test_anetd 5.
 Compute ANetDl_offsetNP test_anetd 6.
 Compute ANetDl_offsetNP test_anetd 7.
 
+Definition test_anetv : ANetVl 3 :=
+  { [0; 0; 0], [1; 1; 2], [2; 4; 0], [3; 0; 5], [4; 1; 1], [0; 0; 0] }.
+
+Compute ANetVlToANetDl test_anetv.
 
 
 
