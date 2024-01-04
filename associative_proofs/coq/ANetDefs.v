@@ -531,36 +531,6 @@ Definition ANetVlToANetDl {n : nat} (anetv: ANetVl n) : ANetDl :=
   ANetLlToANetDl (ANetVlToANetLl anetv).
 
 
-(*  Примеры *)
-
-Definition test_anetl := { {121, 21, 1343}, {12, 23}, {34}, {121, 21, 1343}, {12, 23}, {34} }.
-Definition test_anetd := ANetLlToANetDl test_anetl.
-
-Compute test_anetd.
-(* Ожидается результат:
- {(121, 1), (21, 2), (1343, 2),
-  (12, 4), (23, 4),
-  (34, 5),
-  (121, 7), (21, 8), (1343, 8),
-  (12, 10), (23, 10),
-  (34, 11)} *)
-
-
-Compute ANetDl_offsetNP test_anetd 0.
-Compute ANetDl_offsetNP test_anetd 1.
-Compute ANetDl_offsetNP test_anetd 2.
-Compute ANetDl_offsetNP test_anetd 3.
-Compute ANetDl_offsetNP test_anetd 4.
-Compute ANetDl_offsetNP test_anetd 5.
-Compute ANetDl_offsetNP test_anetd 6.
-Compute ANetDl_offsetNP test_anetd 7.
-
-Definition test_anetv : ANetVl 3 :=
-  { [0; 0; 0], [1; 1; 2], [2; 4; 0], [3; 0; 5], [4; 1; 1], [0; 0; 0] }.
-
-Compute ANetVlToANetDl test_anetv.
-
-
 (*
   Теперь всё готово для преобразования асети дуплетов anetd : L → L²
  в асеть вложенных упорядоченных пар anetl : L → NP
@@ -598,7 +568,52 @@ Definition ANetDlToANetLl (anetd: ANetDl) : ANetLl :=
   ANetDlToANetLl_ anetd nil LDefault.
 
 
+(*  Примеры *)
 
+Definition test_anetl := { {121, 21, 1343}, {12, 23}, {34}, {121, 21, 1343}, {12, 23}, {34} }.
+Definition test_anetd := ANetLlToANetDl test_anetl.
+
+Compute test_anetd.
+(* Ожидается результат:
+ {(121, 1), (21, 2), (1343, 2),
+  (12, 4), (23, 4),
+  (34, 5),
+  (121, 7), (21, 8), (1343, 8),
+  (12, 10), (23, 10),
+  (34, 11)} *)
+
+
+Compute ANetDl_offsetNP test_anetd 0.
+Compute ANetDl_offsetNP test_anetd 1.
+Compute ANetDl_offsetNP test_anetd 2.
+Compute ANetDl_offsetNP test_anetd 3.
+Compute ANetDl_offsetNP test_anetd 4.
+Compute ANetDl_offsetNP test_anetd 5.
+Compute ANetDl_offsetNP test_anetd 6.
+Compute ANetDl_offsetNP test_anetd 7.
+
+Definition test_anetv : ANetVl 3 :=
+  { [0; 0; 0], [1; 1; 2], [2; 4; 0], [3; 0; 5], [4; 1; 1], [0; 0; 0] }.
+
+Compute ANetVlToANetDl test_anetv.
+
+Compute test_anetd.
+(* Ожидается результат:
+ {(121, 1), (21, 2), (1343, 2),
+  (12, 4), (23, 4),
+  (34, 5),
+  (121, 7), (21, 8), (1343, 8),
+  (12, 10), (23, 10),
+  (34, 11)} *)
+
+Compute ANetDlToANetLl test_anetd.
+
+Definition test_anetdl : ANetDl := ANetVlToANetDl test_anetv.
+
+Definition result_TuplesNet : ANetVl 3 :=
+  ANetLlToANetVl (ANetDlToANetLl test_anetdl).
+
+Compute result_TuplesNet.
 
 
 
