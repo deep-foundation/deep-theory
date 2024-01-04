@@ -378,6 +378,17 @@ Definition NPToANetDl (np: NP) : ANetDl := NPToANetDl_ 0 np.
 Definition AddNPToANetDl (anet: ANetDl) (np: NP) : ANetDl :=
   app anet (NPToANetDl_ (length anet) np).
 
+(* Функция отрезает голову anetd и возвращает хвост начиная с offset  *)
+Fixpoint ANetDl_behead (anet: ANetDl) (offset : nat) : ANetDl :=
+  match offset with
+  | 0 => anet
+  | S n' =>
+    match anet with
+    | nil => nil
+    | cons h t => ANetDl_behead t n'
+    end
+  end.
+
 (* Функция преобразования ANetDl в NP с индексации в начале ANetDl начиная с offset*)
 Fixpoint ANetDlToNP_ (anet: ANetDl) (offset: nat) (index: nat): NP :=
   match anet with
@@ -389,7 +400,7 @@ Fixpoint ANetDlToNP_ (anet: ANetDl) (offset: nat) (index: nat): NP :=
       ANetDlToNP_ tail_anet (S offset) index
   end.
 
-(* Функция чтения NP из ANetDl по индексу *)
+(* Функция чтения NP из ANetDl по индексу дуплета*)
 Definition ANetDl_readNP (anet: ANetDl) (index: nat) : NP :=
   ANetDlToNP_ anet 0 index.
 
@@ -472,8 +483,8 @@ Compute ANetDl_readNP {(121, 1), (21, 2), (1343, 2), (12, 4), (23, 5), (34, 5)} 
 
 
 (*
-  Теперь всё готово для преобразования асети вложенных упорядоченных пар: anetl : L → NP
-в асеть дуплетов.
+  Теперь всё готово для преобразования асети вложенных упорядоченных пар anetl : L → NP
+в асеть дуплетов anetd : L → L².
 
 Данное преобразование можно делать по разному: с сохранением исходных идентификаторов векторов
 либо с переиндексацией. Переиндексацию можно не делать если написать дополнительную функцию для
@@ -549,6 +560,42 @@ Definition test_anetv : ANetVl 3 :=
 
 Compute ANetVlToANetDl test_anetv.
 
+
+(*
+  Теперь всё готово для преобразования асети дуплетов anetd : L → L²
+ в асеть вложенных упорядоченных пар anetl : L → NP
+
+Данное преобразование будем делать с сохранением исходных идентификаторов векторов.
+Переиндексацию можно не делать, потому что есть функция ANetDl_offsetNP для
+асети дуплетов которая возвращает смещение вложенной УП по её идентификатору.
+*)
+
+(* Функция отрезает первую NP из ANetDl и возвращает хвост *)
+Fixpoint ANetDl_beheadNP (anet: ANetDl) (offset: nat) : ANetDl :=
+  match anet with
+  | nil => nil
+  | cons (_, next_index) tail_anet =>
+    if offset =? next_index then (* конец NP *)
+      tail_anet
+    else  (* ещё не конец NP *)
+      ANetDl_beheadNP tail_anet (S offset)
+  end.
+
+(* Функция преобразования NP и ANetDl со смещения offset в ANetLl *)
+Fixpoint ANetDlToANetLl_ (anetd: ANetDl) (np: NP) (offset: nat) : ANetLl :=
+  match anetd with
+  | nil => nil (* отбрасываем NP даже если она недостроена *)
+  | cons (x, next_index) tail_anet =>
+    if offset =? next_index then (* конец NP, переходим к следующей NP *)
+      cons (app np (cons x nil)) (ANetDlToANetLl_ tail_anet nil (S offset))
+    else  (* ещё не конец NP, парсим асеть дуплетов дальше *)
+      ANetDlToANetLl_ tail_anet (app np (cons x nil)) (S offset)
+  end.
+
+
+(* Функция преобразования ANetDl в ANetLl *)
+Definition ANetDlToANetLl (anetd: ANetDl) : ANetLl :=
+  ANetDlToANetLl_ anetd nil LDefault.
 
 
 
