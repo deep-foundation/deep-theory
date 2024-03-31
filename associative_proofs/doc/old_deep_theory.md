@@ -12,6 +12,8 @@ In this article, we would like to compare the core mathematical bases of the two
 
 Relational algebra and the [relational model](https://en.wikipedia.org/wiki/Relational_model) are based on the concept of relation and n-tuples.
 
+ > $R$ is a subset of the Cartesian product $S_1 \times S_2 \times \dots \times S_n$. [1]
+
 A relation is defined as a [set](https://en.wikipedia.org/wiki/Set_(mathematics)) of [n-tuples](https://en.wikipedia.org/wiki/Tuple):
 
 Where:
@@ -27,6 +29,8 @@ Data in relational model is grouped into relations. Using n-tuples in a relation
 Directed graph and graphs in general are based on concepts of vertex and edge (2-tuple).
 
 A [directed graph](https://en.wikipedia.org/wiki/Directed_graph) G is defined as an ordered pair G(V, E):
+
+> $G(V, E) = (V, E), \quad V \neq \emptyset, \quad \langle \{v_1, v_2\},\prec \rangle\subseteq E, \quad v\in V$
 
 Where:
 
