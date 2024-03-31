@@ -59,7 +59,9 @@ L × L = {
   (2, 2),
 }
 ```
+![alt text](image.png)
 
+![alt text](image-1.png)
 Doublets network is defined as:
 
 $\lambda : L \to L \times L, L \neq \emptyset, \forall a,b \in L, a \neq b \Rightarrow \lambda(a) \neq \lambda(b).$
@@ -77,7 +79,10 @@ Example:
 
 3 → (1,2)
 
+![alt text](image-2.png)
+
 Graph-like graphical representation of the doublets network.
+![alt text](image-3.png)
 
 This is a graphical representation of Cartesian product, that represents link values. Link values with orange parentheses are selected by the λ  function in the example.
 
@@ -115,6 +120,8 @@ L × L × L = {
   (2, 2, 2),
 }
 ```
+![alt text](image-4.png)
+![alt text](image-5.png)
 Triplets network is defined as:
 
 $\lambda : L \to L \times L \times L, L \neq \emptyset, \forall a,b \in L, a \neq b \Rightarrow \lambda(a) \neq \lambda(b).$
@@ -133,6 +140,8 @@ Example:
 3 → (3,3,3)
 
 **4 → (1,2,3)**
+
+![alt text](image-6.png)
 
 Graph-like graphical representation of the triplets network.
 
