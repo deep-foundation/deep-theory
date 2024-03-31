@@ -62,6 +62,7 @@ L × L = {
 
 Doublets network is defined as:
 
+$\lambda : L \to L \times L, L \neq \emptyset, \forall a,b \in L, a \neq b \Rightarrow \lambda(a) \neq \lambda(b).$
 
 Where:
 
@@ -94,7 +95,29 @@ Because of these, doublets can represent any possible data structure.
 
 Triplet is also known as 3-tuple.
 
+```python 
+L = { 1 , 2 }
+
+L × L = {
+  (1, 1),
+  (1, 2),
+  (2, 1),
+  (2, 2),
+}
+L × L × L = {
+  (1, 1, 1),
+  (1, 1, 2),
+  (1, 2, 1),
+  (1, 2, 2),
+  (2, 1, 1),
+  (2, 1, 2),
+  (2, 2, 1),
+  (2, 2, 2),
+}
+```
 Triplets network is defined as:
+
+$\lambda : L \to L \times L \times L, L \neq \emptyset, \forall a,b \in L, a \neq b \Rightarrow \lambda(a) \neq \lambda(b).$
 
 Where:
 
@@ -122,6 +145,11 @@ Triplets can do everything doublets can, and are especially useful when you need
 A sequence is also known as [n-tuple](https://en.wikipedia.org/wiki/Tuple).
 
 Links network in general is defined as:
+
+$\lambda : L \rightarrow \underbrace{ L \times L \times \ldots \times L}_{n},
+L \neq \emptyset,
+\forall a,b \in L,
+a \neq b \Rightarrow \lambda(a) \neq \lambda(b).$
 
 Where:
 
