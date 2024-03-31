@@ -1,6 +1,6 @@
 # Math introduction to Deep Theory
 
-The article is written as a continuation of the previous article.
+The article is written as a continuation of the [previous article](https://habr.com/ru/post/656879/).
 
 > We will begin to write this article in English, later it can be translated to Russian.
 
@@ -10,9 +10,9 @@ In this article, we would like to compare the core mathematical bases of the two
 
 ## Relational algebra
 
-Relational algebra and the relational model are based on the concept of relation and n-tuples.
+Relational algebra and the [relational model](https://en.wikipedia.org/wiki/Relational_model) are based on the concept of relation and n-tuples.
 
-A relation is defined as a set of n-tuples:
+A relation is defined as a [set](https://en.wikipedia.org/wiki/Set_(mathematics)) of [n-tuples](https://en.wikipedia.org/wiki/Tuple):
 
 Where:
 
@@ -26,26 +26,38 @@ Data in relational model is grouped into relations. Using n-tuples in a relation
 
 Directed graph and graphs in general are based on concepts of vertex and edge (2-tuple).
 
-A directed graph G is defined as an ordered pair G(V, E):
+A [directed graph](https://en.wikipedia.org/wiki/Directed_graph) G is defined as an ordered pair G(V, E):
 
 Where:
 
-* B is a set whose elements are called vertices, nodes, or points;
-* E is a set of ordered pairs (2-tuples) of vertices, called arcs, directed edges (sometimes simply edges), arrows, or directed lines.
+* B is a [set](https://en.wikipedia.org/wiki/Set_(mathematics)) whose [elements](https://en.wikipedia.org/wiki/Element_(mathematics)) are called [vertices](https://en.wikipedia.org/wiki/Vertex_(graph_theory)), nodes, or points;
+* E is a set of [ordered pairs](https://en.wikipedia.org/wiki/Ordered_pair) (2-tuples) of vertices, called arcs, directed edges (sometimes simply edges), arrows, or directed lines.
 
-Data in the graph model is represented as a collection of nodes and edges, and you may use this model pretty much for everything, except maybe sequences (n-tuples). Well, perhaps you can represent sequences as sets, but in our point of view it is a messy way to represent sequences. Probably we are not alone and this may be the reason we didn’t see other people to do so.
+Data in the graph model is represented as a collection of nodes and edges, and you may use this model pretty much for everything, except maybe sequences (n-tuples). Well, perhaps you can represent [sequences as sets](https://en.wikipedia.org/wiki/Tuple#Tuples_as_nested_sets), but in our point of view it is a messy way to represent sequences. Probably we are not alone and this may be the reason we didn’t see other people to do so.
 
 ## Associative theory
 
 Associative theory is based on the concept of link.
 
-A link is defined as n-tuple of references to links.
+A link is defined as [n-tuple](https://en.wikipedia.org/wiki/Tuple) of references to links.
 
 ### Doublets
 
-Doublet is also known as 2-tuple or ordered pair.
+Doublet is also known as 2-tuple or [ordered pair](https://en.wikipedia.org/wiki/Ordered_pair#:~:text=In%20mathematics%2C%20an%20ordered%20pair,%7Bb%2C%20a%7D.).
+
+```python
+L = { 1 , 2 }
+
+L × L = {
+  (1, 1),
+  (1, 2),
+  (2, 1),
+  (2, 2),
+}
+```
 
 Doublets network is defined as:
+
 
 Where:
 
@@ -103,7 +115,7 @@ Triplets can do everything doublets can, and are especially useful when you need
 
 ### Sequences
 
-A sequence is also known as n-tuple.
+A sequence is also known as [n-tuple](https://en.wikipedia.org/wiki/Tuple).
 
 Links network in general is defined as:
 
