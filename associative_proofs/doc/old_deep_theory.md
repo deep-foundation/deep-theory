@@ -14,13 +14,13 @@ Relational algebra and the [relational model](https://en.wikipedia.org/wiki/Rela
 
 A relation is defined as a [set](https://en.wikipedia.org/wiki/Set_(mathematics)) of [n-tuples](https://en.wikipedia.org/wiki/Tuple):
 
-> $R$ is a subset of the Cartesian product $S_1 \times S_2 \times \dots \times S_n$. [1]
+> **$R$ is a subset of the Cartesian product $S_1 \times S_2 \times \dots \times S_n$. [1]**
 
 Where:
 
-* $R$ stands for relation (a table);
-* $S_n$ stands for domain of each column;
-* Rows or elements of $R$ set are represented as n-tuples.
+* **$R$** stands for relation (a table);
+* **$S_n$** stands for domain of each column;
+* Rows or elements of **$R$** set are represented as n-tuples.
 
 Data in relational model is grouped into relations. Using n-tuples in a relational model, you can exactly represent any possible data structure. But we are not sure, you need n-tuples for that at all. For example, each n-tuple can be represented as nested ordered pairs (2-tuples). You also don’t often see that columns in tables are used as indexes for sequence (n-tuple) elements. In some databases, you're even prohibited to use more than 32 columns in a table and its row (n-tuple). So the N is usually less than 32. So there are no real n-tuples in this case, even in relational databases of today.
 
