@@ -30,7 +30,7 @@ Directed graph and graphs in general are based on concepts of vertex and edge (2
 
 A [directed graph](https://en.wikipedia.org/wiki/Directed_graph) G is defined as an ordered pair G(V, E):
 
-> **$G(V, E) = (V, E), \quad V \neq \emptyset, \quad \langle \{v_1, v_2\},\prec \rangle\subseteq E, \quad v\in V$**
+> **$G(V, E) = \langle V, E \rangle, \quad V \neq \emptyset, \quad \langle \\{ v_1, v_2 \\}, \prec \rangle \in E, \quad v \in V$**
 
 Where:
 
@@ -64,27 +64,28 @@ L × L = {
 ![alt text](image-1.png)
 Doublets network is defined as:
 
-$\lambda : L \to L \times L, L \neq \emptyset, \forall a,b \in L, a \neq b \Rightarrow \lambda(a) \neq \lambda(b).$
+> $\mathbf{\lambda: L \to L \times L, \quad L \neq \emptyset, \quad \forall a,b \in L, \quad a \neq b \Rightarrow \lambda(a) \neq \lambda(b).}$
 
 Where:
 
-* λ  stands for a function that defines a doublets network;
-* L stands for a set of links indices.
+* **$\lambda$**  stands for a function that defines a doublets network;
+* **$L$** stands for a set of links indices.
 
 Example:
 
-1 → (1,1)
-
-2 → (2,2)
-
-3 → (1,2)
+> $1 \to (1, 1)$
+> 
+> $2 \to (2, 2)$
+> 
+> $\mathbf{3 \to (1, 2)}$
 
 ![alt text](image-2.png)
 
 Graph-like graphical representation of the doublets network.
+
 ![alt text](image-3.png)
 
-This is a graphical representation of Cartesian product, that represents link values. Link values with orange parentheses are selected by the λ  function in the example.
+This is a graphical representation of Cartesian product, that represents link values. Link values with orange parentheses are selected by the **$\lambda$** function in the example.
 
 Data in doublets network is represented using doublets (2-tuples).
 
@@ -109,6 +110,7 @@ L × L = {
   (2, 1),
   (2, 2),
 }
+
 L × L × L = {
   (1, 1, 1),
   (1, 1, 2),
@@ -120,8 +122,11 @@ L × L × L = {
   (2, 2, 2),
 }
 ```
+
 ![alt text](image-4.png)
+
 ![alt text](image-5.png)
+
 Triplets network is defined as:
 
 $\lambda : L \to L \times L \times L, L \neq \emptyset, \forall a,b \in L, a \neq b \Rightarrow \lambda(a) \neq \lambda(b).$
@@ -133,13 +138,13 @@ Where:
 
 Example:
 
-1 → (1,1,1)
-
-2 → (2,2,2)
-
-3 → (3,3,3)
-
-**4 → (1,2,3)**
+> $1 \to (1, 1, 1)$
+> 
+> $2 \to (2, 2, 2)$
+> 
+> $3 \to (3, 3, 3)$
+>
+> **$4 \to (1, 2, 3)$**
 
 ![alt text](image-6.png)
 
