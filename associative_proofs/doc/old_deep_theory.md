@@ -14,7 +14,7 @@ Relational algebra and the [relational model](https://en.wikipedia.org/wiki/Rela
 
 A relation is defined as a [set](https://en.wikipedia.org/wiki/Set_(mathematics)) of [n-tuples](https://en.wikipedia.org/wiki/Tuple):
 
-> $\mathbf{R \subseteq S_1 \times S_2 \times \dots \times S_n}$. [1]
+> $\mathbf{R \subseteq S_1 \times S_2 \times \dots \times S_n}.$ [1]
 
 Where:
 
@@ -30,12 +30,12 @@ Directed graph and graphs in general are based on concepts of vertex and edge (2
 
 A [directed graph](https://en.wikipedia.org/wiki/Directed_graph) $\mathbf{G}$ is defined as an ordered pair $\mathbf{G(V, E)}$:
 
-> **$G(V, E) = \langle V, E \rangle, \quad V \neq \emptyset, \quad \langle \\{ v_1, v_2 \\}, \prec \rangle \in E, \quad v \in V$**
+> $\mathbf{G(V, E) = \langle V, E \rangle, \quad V \neq \emptyset, \quad \langle \\{ v_1, v_2 \\}, \prec \rangle \in E, \quad v \in V}.$
 
 Where:
 
-* **$B$** is a [set](https://en.wikipedia.org/wiki/Set_(mathematics)) whose [elements](https://en.wikipedia.org/wiki/Element_(mathematics)) are called [vertices](https://en.wikipedia.org/wiki/Vertex_(graph_theory)), nodes, or points;
-* **$E$** is a set of [ordered pairs](https://en.wikipedia.org/wiki/Ordered_pair) (2-tuples) of vertices, called arcs, directed edges (sometimes simply edges), arrows, or directed lines.
+* $\mathbf{V}$ is a [set](https://en.wikipedia.org/wiki/Set_(mathematics)) whose [elements](https://en.wikipedia.org/wiki/Element_(mathematics)) are called [vertices](https://en.wikipedia.org/wiki/Vertex_(graph_theory)), nodes, or points;
+* $\mathbf{E}$ is a set of [ordered pairs](https://en.wikipedia.org/wiki/Ordered_pair) (2-tuples) of vertices, called arcs, directed edges (sometimes simply edges), arrows, or directed lines.
 
 Data in the graph model is represented as a collection of nodes and edges, and you may use this model pretty much for everything, except maybe sequences (n-tuples). Well, perhaps you can represent [sequences as sets](https://en.wikipedia.org/wiki/Tuple#Tuples_as_nested_sets), but in our point of view it is a messy way to represent sequences. Probably we are not alone and this may be the reason we didn’t see other people to do so.
 
@@ -59,17 +59,19 @@ L × L = {
   (2, 2),
 }
 ```
+
 ![alt text](image.png)
 
 ![alt text](image-1.png)
+
 Doublets network is defined as:
 
-> $\mathbf{\lambda: L \to L \times L, \quad L \neq \emptyset, \quad \forall a,b \in L, \quad a \neq b \Rightarrow \lambda(a) \neq \lambda(b).}$
+> $\mathbf{\lambda: L \to L \times L, \quad L \neq \emptyset, \quad \forall a,b \in L, \quad a \neq b \Rightarrow \lambda(a) \neq \lambda(b)}.$
 
 Where:
 
-* **$\lambda$**  stands for a function that defines a doublets network;
-* **$L$** stands for a set of links indices.
+* $\mathbf{\lambda}$  stands for a function that defines a doublets network;
+* $\mathbf{L}$ stands for a set of links indices.
 
 Example:
 
@@ -85,7 +87,7 @@ Graph-like graphical representation of the doublets network.
 
 ![alt text](image-3.png)
 
-This is a graphical representation of Cartesian product, that represents link values. Link values with orange parentheses are selected by the **$\lambda$** function in the example.
+This is a graphical representation of Cartesian product, that represents link values. Link values with orange parentheses are selected by the $\mathbf{\lambda}$ function in the example.
 
 Data in doublets network is represented using doublets (2-tuples).
 
@@ -129,12 +131,12 @@ L × L × L = {
 
 Triplets network is defined as:
 
-$\lambda : L \to L \times L \times L, L \neq \emptyset, \forall a,b \in L, a \neq b \Rightarrow \lambda(a) \neq \lambda(b).$
+> $\mathbf{\lambda : L \to L \times L \times L, \quad L \neq \emptyset, \quad \forall a,b \in L, \quad a \neq b \Rightarrow \lambda(a) \neq \lambda(b).}$
 
 Where:
 
-* λ  stands for a function that defines a triplets network;
-* L stands for a set of links indices.
+* $\mathbf{\lambda}$ stands for a function that defines a triplets network;
+* $\mathbf{L}$ stands for a set of links indices.
 
 Example:
 
@@ -144,7 +146,7 @@ Example:
 > 
 > $3 \to (3, 3, 3)$
 >
-> **$4 \to (1, 2, 3)$**
+> $\mathbf{4 \to (1, 2, 3)}$
 
 ![alt text](image-6.png)
 
@@ -160,25 +162,22 @@ A sequence is also known as [n-tuple](https://en.wikipedia.org/wiki/Tuple).
 
 Links network in general is defined as:
 
-$\lambda : L \rightarrow \underbrace{ L \times L \times \ldots \times L}_{n},
-L \neq \emptyset,
-\forall a,b \in L,
-a \neq b \Rightarrow \lambda(a) \neq \lambda(b).$
+> $\mathbf{\lambda : L \rightarrow \underbrace{ L \times L \times \ldots \times L}_{n}, \quad L \neq \emptyset, \quad \forall a,b \in L, \quad a \neq b \Rightarrow \lambda(a) \neq \lambda(b).}$
 
 Where:
 
-* λ  stands for a function that defines a links network;
-* L stands for a set of links indices.
+* $\mathbf{\lambda}$ stands for a function that defines a links network;
+* $\mathbf{L}$ stands for a set of links indices.
 
 Example:
 
-1 → (1)
-
-2 → (2,2)
-
-3 → (3,3,3)
-
-4 → (1,2,3,2,1)
+> $1 \to (1)$
+> 
+> $2 \to (2, 2)$
+> 
+> $3 \to (3, 3, 3)$
+>
+> $\mathbf{4 \to (1, 2, 3, 2, 1)}$
 
 This example uses variable length n-tuples for link values.
 
@@ -188,7 +187,7 @@ Sequences are essentially equivalent in expressive power with relational model. 
 
 Relation model can represent everything, including associative model. Graph model is particularly good at representing relationships and is not so much in representing sequences.
 
-Associative model can easily represent n-tuple with unlimited length using tuples with n ≥ 2, and is as good as graph theory in its ability to represent associations, yet is as powerful as relation model and can fully represent any SQL table.
+Associative model can easily represent n-tuple with unlimited length using tuples with $\mathbf{n \geq 2}$, and is as good as graph theory in its ability to represent associations, yet is as powerful as relation model and can fully represent any SQL table.
 
 There is no need for more than one relation in a relational model to make it behave as an associative model. And in this relation there is no need for more than 2-3 columns except explicit ID or built-in row ID.
 
