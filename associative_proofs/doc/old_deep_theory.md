@@ -30,12 +30,12 @@ Directed graph and graphs in general are based on concepts of vertex and edge (2
 
 A [directed graph](https://en.wikipedia.org/wiki/Directed_graph) G is defined as an ordered pair G(V, E):
 
-> $G(V, E) = (V, E), \quad V \neq \emptyset, \quad \langle \{v_1, v_2\},\prec \rangle\subseteq E, \quad v\in V$
+> **$G(V, E) = (V, E), \quad V \neq \emptyset, \quad \langle \{v_1, v_2\},\prec \rangle\subseteq E, \quad v\in V$**
 
 Where:
 
-* B is a [set](https://en.wikipedia.org/wiki/Set_(mathematics)) whose [elements](https://en.wikipedia.org/wiki/Element_(mathematics)) are called [vertices](https://en.wikipedia.org/wiki/Vertex_(graph_theory)), nodes, or points;
-* E is a set of [ordered pairs](https://en.wikipedia.org/wiki/Ordered_pair) (2-tuples) of vertices, called arcs, directed edges (sometimes simply edges), arrows, or directed lines.
+* **$B$** is a [set](https://en.wikipedia.org/wiki/Set_(mathematics)) whose [elements](https://en.wikipedia.org/wiki/Element_(mathematics)) are called [vertices](https://en.wikipedia.org/wiki/Vertex_(graph_theory)), nodes, or points;
+* **$E$** is a set of [ordered pairs](https://en.wikipedia.org/wiki/Ordered_pair) (2-tuples) of vertices, called arcs, directed edges (sometimes simply edges), arrows, or directed lines.
 
 Data in the graph model is represented as a collection of nodes and edges, and you may use this model pretty much for everything, except maybe sequences (n-tuples). Well, perhaps you can represent [sequences as sets](https://en.wikipedia.org/wiki/Tuple#Tuples_as_nested_sets), but in our point of view it is a messy way to represent sequences. Probably we are not alone and this may be the reason we didn’t see other people to do so.
 
