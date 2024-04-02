@@ -132,6 +132,11 @@ Import ListNotations.
 Import VectorNotations.
 
 
+(*
+      Определения ассоциативных сетей
+*)
+
+
 (* Последовательность ссылок на вектора: L ⊆ ℕ₀ *)
 Definition L := nat.
 
@@ -173,6 +178,12 @@ Definition ANetDf := L -> D.
 
 (* Ассоциативная сеть дуплетов (или двумерная асеть) в виде последовательности дуплетов *)
 Definition ANetDl := list D.
+
+
+(*
+      Функция преобразования ассоциативных сетей
+*)
+
 
 (* Функция преобразования Vn в NP *)
 Fixpoint VnToNP {n : nat} (v : Vn n) : NP :=
@@ -219,137 +230,6 @@ Definition ANetLfToANetVf { n: nat } (net: ANetLf) : ANetVf n :=
 Definition ANetLlToANetVl {n: nat} (net : ANetLl) : ANetVl n :=
   map (NPToVn n) net.
 
-(* Определение anets_equiv вводит предикат эквивалентности двух ассоциативных сетей векторов длины n,
- anet1 и anet2 типа ANetVf. 
-
-  Данный предикат описывает свойство "эквивалентности" для таких сетей.
- Он утверждает, что anet1 и anet2 считаются "эквивалентными", если для каждой ссылки id вектор,
- связанный с id в anet1, точно совпадает с вектором, связанным с тем же id в anet2.
-*)
-Definition ANetVf_equiv {n: nat} (anet1: ANetVf n) (anet2: ANetVf n) : Prop :=
-  forall id, anet1 id = anet2 id.
-
-(* Определение anets_equiv вводит предикат эквивалентности двух ассоциативных сетей векторов длины n,
- anet1 и anet2 типа ANetVl.
-*)
-Definition ANetVl_equiv_Vl {n: nat} (anet1: ANetVl n) (anet2: ANetVl n) : Prop :=
-  anet1 = anet2.
-
-(*  Доказательства *)
-
-(* Лемма о сохранении длины векторов ассоциативной сети *)
-Lemma Vn_dim_preserved : forall {l: nat} (t: Vn l), List.length (VnToNP t) = l.
-Proof.
-  intros l t.
-  induction t.
-  - simpl. reflexivity.
-  - simpl. rewrite IHt. reflexivity.
-Qed.
-
-(* Лемма о взаимном обращении функций NPToVnOption и VnToNP
-
-  H_inverse доказывает, что каждый вектор Vn без потери данных может быть преобразован в NP
- с помощью VnToNP и обратно в Vn с помощью NPToVnOption.
-
-  В формальном виде forall n: nat, forall t: Vn n, NPToVnOption n (VnToNP t) = Some t говорит о том,
- что для всякого натурального числа n и каждого вектора Vn длины n,
- мы можем преобразовать Vn в NP с помощью VnToNP,
- затем обратно преобразовать результат в Vn с помощью NPToVnOption n,
- и в итоге получать тот же вектор Vn, что и в начале.
-
-  Это свойство очень важно, потому что оно гарантирует,
- что эти две функции образуют обратные друг к другу пары функций на преобразуемом круге векторов Vn и NP.
- Когда вы применяете обе функции к значениям в преобразуемом круге, вы в итоге получаете исходное значение.
- Это означает, что никакая информация не теряется при преобразованиях,
- так что можно свободно конвертировать между Vn и NP,
- если это требуется в реализации или доказательствах.
- *)
-Lemma H_inverse: forall n: nat, forall t: Vn n, NPToVnOption n (VnToNP t) = Some t.
-Proof.
-  intros n.
-  induction t as [| h n' t' IH].
-  - simpl. reflexivity.
-  - simpl. rewrite IH. reflexivity.
-Qed.
-
-(*
-  Теорема обертывания и восстановления ассоциативной сети векторов:
-
-Пусть дана ассоциативная сеть векторов длины n, обозначенная как anetvⁿ : L → Vⁿ.
-Определим операцию отображения этой сети в ассоциативную сеть вложенных упорядоченных пар anetl : L → NP,
-  где NP = {(∅,∅) | (l,np), l ∈ L, np ∈ NP}.
-Затем определим обратное отображение из ассоциативной сети вложенных упорядоченных пар обратно в ассоциативную сеть векторов длины n.
-
-  Теорема утверждает:
-
-Для любой ассоциативной сети векторов длины n, anetvⁿ, применение операции преобразования в ассоциативную сеть вложенных упорядоченных пар
- и обратное преобразование обратно в ассоциативную сеть векторов длины n обеспечивает восстановление исходной сети anetvⁿ.
-То есть, если мы преобразуем anetvⁿ в anetl и потом обратно в anetvⁿ, то мы получим исходную ассоциативную сеть векторов anetvⁿ.
- Иначе говоря:
-
-    ∀ anetvⁿ : L → Vⁿ, преобразованиеобратно(преобразованиевперед(anetvⁿ)) = anetvⁿ.
-*)
-
-Theorem anetf_equiv_after_transforms : forall {n: nat} (anet: ANetVf n),
-  ANetVf_equiv anet (fun id => match NPToVnOption n ((ANetVfToANetLf anet) id) with
-                            | Some t => t
-                            | None   => anet id
-                            end).
-Proof.
-  intros n net id.
-  unfold ANetVfToANetLf.
-  simpl.
-  rewrite H_inverse.
-  reflexivity.
-Qed.
-
-
-(*  Примеры *)
-
-Definition complexExampleNet : ANetVf 3 :=
-  fun id => match id with
-  | 0 => [0; 0; 0]
-  | 1 => [1; 1; 2]
-  | 2 => [2; 4; 0]
-  | 3 => [3; 0; 5]
-  | 4 => [4; 1; 1]
-  | S _ => [0; 0; 0]
-  end.
-
-Definition exampleTuple0 : Vn 0 := [].
-Definition exampleTuple1 : Vn 1 := [0].
-Definition exampleTuple4 : Vn 4 := [3; 2; 1; 0].
-Definition nestedPair0 := VnToNP exampleTuple0.
-Definition nestedPair1 := VnToNP exampleTuple1.
-Definition nestedPair4 := VnToNP exampleTuple4.
-Check nestedPair0.
-Check nestedPair1.
-Check nestedPair4.
-Compute nestedPair0.
-Compute nestedPair1.
-Compute nestedPair4.
-
-Compute (ANetVfToANetLf complexExampleNet) 0.
-Compute (ANetVfToANetLf complexExampleNet) 1.
-Compute (ANetVfToANetLf complexExampleNet) 2.
-Compute (ANetVfToANetLf complexExampleNet) 3.
-Compute (ANetVfToANetLf complexExampleNet) 4.
-Compute (ANetVfToANetLf complexExampleNet) 5.
-
-Definition testPairsNet : ANetLf :=
-  fun _ => cons 1 (cons 2 (cons 0 nil)).
-
-Definition testTuplesNet : ANetVf 3 :=
-  ANetLfToANetVf testPairsNet.
-
-Compute testTuplesNet 0.
-
-(* Предикат эквивалентности для ассоциативных сетей дуплетов ANetDf *)
-Definition ANetDf_equiv (anet1: ANetDf) (anet2: ANetDf) : Prop := forall id, anet1 id = anet2 id.
-
-(* Предикат эквивалентности для ассоциативных сетей дуплетов ANetDl *)
-Definition ANetDl_equiv (anet1: ANetDl) (anet2: ANetDl) : Prop := anet1 = anet2.
-
 (* Функция преобразования NP в ANetDl со смещением индексации *)
 Fixpoint NPToANetDl_ (offset: nat) (np: NP) : ANetDl :=
   match np with
@@ -395,81 +275,6 @@ Definition ANetDl_readNP (anet: ANetDl) (index: nat) : NP :=
 Definition ANetDlToNP (anet: ANetDl) : NP := ANetDl_readNP anet 0.
 
 
-(*  Доказательства *)
-
-(* Лемма о сохранении длины списков NP в ассоциативной сети дуплетов *)
-Lemma NP_dim_preserved : forall (offset: nat) (np: NP), 
-    length np = length (NPToANetDl_ offset np).
-Proof.
-  intros offset np.
-  generalize dependent offset. 
-  induction np as [| n np' IHnp']; intros offset.
-  - simpl. reflexivity.
-  - destruct np' as [| m np'']; simpl; simpl in IHnp'.
-    + reflexivity.
-    + rewrite IHnp' with (offset := S offset). reflexivity.
-Qed.
-
-
-(* Лемма о взаимном обращении функций NPToANetDl и ANetDlToNP
-
-  H_inverse доказывает, что каждый список NP без потери данных может быть преобразован в ANetDl
- с помощью NPToANetDl и обратно в NP с помощью ANetDlToNP.
-
-  В формальном виде forall (np: NP), ANetDlToNP (NPToANetDl np) = np говорит о том,
- что для всякого список NP, мы можем преобразовать NP в ANetDl с помощью NPToANetDl,
- затем обратно преобразовать результат в NP с помощью ANetDlToNP,
- и в итоге получать тот же список NP, что и в начале.
-
-  Это свойство очень важно, потому что оно гарантирует,
- что эти две функции образуют обратные друг к другу пары функций на преобразуемом круге списоке NP и ANetDl.
- Когда вы применяете обе функции к значениям в преобразуемом круге, вы в итоге получаете исходное значение.
- Это означает, что никакая информация не теряется при преобразованиях,
- так что вы можете свободно конвертировать списком NP и ANetDl,
- если это требуется в вашей реализации или доказательствах.
- 
-Theorem NP_ANetDl_NP_inverse: forall (np: NP),
-  ANetDlToNP_ (NPToANetDl np) (length np) = np.
-Proof.
-  intros np.
-  induction np as [| h t IH].
-  - reflexivity.
-  - simpl. 
-    case_eq t; intros.  
-    + reflexivity. 
-    + simpl.
-      rewrite NP_dim_preserved. 
-      rewrite H in IH.
-      reflexivity.
-Qed.
-*)
-
-Notation "{ }" := (nil) (at level 0).
-Notation "{ x , .. , y }" := (cons x .. (cons y nil) ..) (at level 0).
-
-
-(*  Примеры *)
-
-Compute NPToANetDl { 121, 21, 1343 }.
-(* Должно вернуть: {(121, 1), (21, 2), (1343, 2)} *)
-
-Compute AddNPToANetDl {(121, 1), (21, 2), (1343, 2)} {12, 23, 34}. 
-(* Ожидается результат: {(121, 1), (21, 2), (1343, 2), (12, 4), (23, 5), (34, 5)} *)
-
-
-Compute ANetDlToNP {(121, 1), (21, 2), (1343, 2)}. 
-(* Ожидается результат: {121, 21, 1343} *)
-
-Compute ANetDlToNP {(121, 1), (21, 2), (1343, 2), (12, 4), (23, 5), (34, 5)}. 
-(* Ожидается результат: {121, 21, 1343} *)
-
-Compute ANetDl_readNP {(121, 1), (21, 2), (1343, 2), (12, 4), (23, 5), (34, 5)} 0.
-(* Ожидается результат: {121, 21, 1343} *)
-
-Compute ANetDl_readNP {(121, 1), (21, 2), (1343, 2), (12, 4), (23, 5), (34, 5)} 3.
-(* Ожидается результат: {12, 23, 34} *)
-
-
 (*
   Теперь всё готово для преобразования асети вложенных упорядоченных пар anetl : L → NP
 в асеть дуплетов anetd : L → L².
@@ -493,7 +298,6 @@ Definition ANetLlToANetDl (anetl: ANetLl) : ANetDl :=
   | cons h t => AddANetLlToANetDl (NPToANetDl h) t
   end.
 
-
 (* Функция поиска NP в хвосте ANetDl начинающемуся с offset по её порядковому номеру. Возвращает offset NP *)
 Fixpoint ANetDl_offsetNP_ (anet: ANetDl) (offset: nat) (index: nat) : nat :=
   match anet with
@@ -508,7 +312,6 @@ Fixpoint ANetDl_offsetNP_ (anet: ANetDl) (offset: nat) (index: nat) : nat :=
         ANetDl_offsetNP_ tail_anet (S offset) index
     end
   end.
-
 
 (* Функция поиска NP в ANetDl по её порядковому номеру. Возвращает offset NP *)
 Definition ANetDl_offsetNP (anet: ANetDl) (index: nat) : nat :=
@@ -550,17 +353,254 @@ Fixpoint ANetDlToANetLl_ (anetd: ANetDl) (np: NP) (offset: nat) : ANetLl :=
       ANetDlToANetLl_ tail_anet (app np (cons x nil)) (S offset)
   end.
 
-
 (* Функция преобразования ANetDl в ANetLl *)
 Definition ANetDlToANetLl (anetd: ANetDl) : ANetLl :=
   ANetDlToANetLl_ anetd nil LDefault.
 
 
-(*  Примеры *)
+(*
+      Предикаты эквивалентности ассоциативных сетей
+*)
 
+
+(* Определение anets_equiv вводит предикат эквивалентности двух ассоциативных сетей векторов длины n,
+ anet1 и anet2 типа ANetVf. 
+
+  Данный предикат описывает свойство "эквивалентности" для таких сетей.
+ Он утверждает, что anet1 и anet2 считаются "эквивалентными", если для каждой ссылки id вектор,
+ связанный с id в anet1, точно совпадает с вектором, связанным с тем же id в anet2.
+*)
+Definition ANetVf_equiv {n: nat} (anet1: ANetVf n) (anet2: ANetVf n) : Prop :=
+  forall id, anet1 id = anet2 id.
+
+(* Определение anets_equiv вводит предикат эквивалентности двух ассоциативных сетей векторов длины n,
+ anet1 и anet2 типа ANetVl.
+*)
+Definition ANetVl_equiv_Vl {n: nat} (anet1: ANetVl n) (anet2: ANetVl n) : Prop :=
+  anet1 = anet2.
+
+(* Предикат эквивалентности для ассоциативных сетей дуплетов ANetDf *)
+Definition ANetDf_equiv (anet1: ANetDf) (anet2: ANetDf) : Prop := forall id, anet1 id = anet2 id.
+
+(* Предикат эквивалентности для ассоциативных сетей дуплетов ANetDl *)
+Definition ANetDl_equiv (anet1: ANetDl) (anet2: ANetDl) : Prop := anet1 = anet2.
+
+
+(*
+      Леммы эквивалентности ассоциативных сетей
+*)
+
+
+(* Лемма о сохранении длины векторов ассоциативной сети *)
+Lemma Vn_dim_preserved : forall {l: nat} (t: Vn l), List.length (VnToNP t) = l.
+Proof.
+  intros l t.
+  induction t.
+  - simpl. reflexivity.
+  - simpl. rewrite IHt. reflexivity.
+Qed.
+
+
+(* Лемма о взаимном обращении функций NPToVnOption и VnToNP
+
+  H_inverse доказывает, что каждый вектор Vn без потери данных может быть преобразован в NP
+ с помощью VnToNP и обратно в Vn с помощью NPToVnOption.
+
+  В формальном виде forall n: nat, forall t: Vn n, NPToVnOption n (VnToNP t) = Some t говорит о том,
+ что для всякого натурального числа n и каждого вектора Vn длины n,
+ мы можем преобразовать Vn в NP с помощью VnToNP,
+ затем обратно преобразовать результат в Vn с помощью NPToVnOption n,
+ и в итоге получать тот же вектор Vn, что и в начале.
+
+  Это свойство очень важно, потому что оно гарантирует,
+ что эти две функции образуют обратные друг к другу пары функций на преобразуемом круге векторов Vn и NP.
+ Когда вы применяете обе функции к значениям в преобразуемом круге, вы в итоге получаете исходное значение.
+ Это означает, что никакая информация не теряется при преобразованиях,
+ так что можно свободно конвертировать между Vn и NP,
+ если это требуется в реализации или доказательствах.
+ *)
+Lemma H_inverse: forall n: nat, forall t: Vn n, NPToVnOption n (VnToNP t) = Some t.
+Proof.
+  intros n.
+  induction t as [| h n' t' IH].
+  - simpl. reflexivity.
+  - simpl. rewrite IH. reflexivity.
+Qed.
+
+
+(*
+  Теорема обертывания и восстановления ассоциативной сети векторов:
+
+Пусть дана ассоциативная сеть векторов длины n, обозначенная как anetvⁿ : L → Vⁿ.
+Определим операцию отображения этой сети в ассоциативную сеть вложенных упорядоченных пар anetl : L → NP,
+  где NP = {(∅,∅) | (l,np), l ∈ L, np ∈ NP}.
+Затем определим обратное отображение из ассоциативной сети вложенных упорядоченных пар обратно в ассоциативную сеть векторов длины n.
+
+  Теорема утверждает:
+
+Для любой ассоциативной сети векторов длины n, anetvⁿ, применение операции преобразования в ассоциативную сеть вложенных упорядоченных пар
+ и обратное преобразование обратно в ассоциативную сеть векторов длины n обеспечивает восстановление исходной сети anetvⁿ.
+То есть, если мы преобразуем anetvⁿ в anetl и потом обратно в anetvⁿ, то мы получим исходную ассоциативную сеть векторов anetvⁿ.
+ Иначе говоря:
+
+    ∀ anetvⁿ : L → Vⁿ, преобразованиеобратно(преобразованиевперед(anetvⁿ)) = anetvⁿ.
+*)
+Theorem anetf_equiv_after_transforms : forall {n: nat} (anet: ANetVf n),
+  ANetVf_equiv anet (fun id => match NPToVnOption n ((ANetVfToANetLf anet) id) with
+                            | Some t => t
+                            | None   => anet id
+                            end).
+Proof.
+  intros n net id.
+  unfold ANetVfToANetLf.
+  simpl.
+  rewrite H_inverse.
+  reflexivity.
+Qed.
+
+
+(* Лемма о сохранении длины списков NP в ассоциативной сети дуплетов *)
+Lemma NP_dim_preserved : forall (offset: nat) (np: NP), 
+    length np = length (NPToANetDl_ offset np).
+Proof.
+  intros offset np.
+  generalize dependent offset. 
+  induction np as [| n np' IHnp']; intros offset.
+  - simpl. reflexivity.
+  - destruct np' as [| m np'']; simpl; simpl in IHnp'.
+    + reflexivity.
+    + rewrite IHnp' with (offset := S offset). reflexivity.
+Qed.
+
+(* Лемма о взаимном обращении функций NPToANetDl и ANetDlToNP
+
+  H_inverse доказывает, что каждый список NP без потери данных может быть преобразован в ANetDl
+ с помощью NPToANetDl и обратно в NP с помощью ANetDlToNP.
+
+  В формальном виде forall (np: NP), ANetDlToNP (NPToANetDl np) = np говорит о том,
+ что для всякого список NP, мы можем преобразовать NP в ANetDl с помощью NPToANetDl,
+ затем обратно преобразовать результат в NP с помощью ANetDlToNP,
+ и в итоге получать тот же список NP, что и в начале.
+
+  Это свойство очень важно, потому что оно гарантирует,
+ что эти две функции образуют обратные друг к другу пары функций на преобразуемом круге списоке NP и ANetDl.
+ Когда вы применяете обе функции к значениям в преобразуемом круге, вы в итоге получаете исходное значение.
+ Это означает, что никакая информация не теряется при преобразованиях,
+ так что вы можете свободно конвертировать списком NP и ANetDl,
+ если это требуется в вашей реализации или доказательствах.
+ 
+Theorem NP_ANetDl_NP_inverse: forall (np: NP),
+  ANetDlToNP_ (NPToANetDl np) (length np) = np.
+Proof.
+  intros np.
+  induction np as [| h t IH].
+  - reflexivity.
+  - simpl. 
+    case_eq t; intros.  
+    + reflexivity. 
+    + simpl.
+      rewrite NP_dim_preserved. 
+      rewrite H in IH.
+      reflexivity.
+Qed.
+*)
+
+
+(*
+      Примеры преобразования ассоциативных сетей друг в друга
+*)
+
+
+(*  Нотация записи списков  *)
+Notation "{ }" := (nil) (at level 0).
+Notation "{ x , .. , y }" := (cons x .. (cons y nil) ..) (at level 0).
+
+(*  Трёхмерная асеть  *)
+Definition complexExampleNet : ANetVf 3 :=
+  fun id => match id with
+  | 0 => [0; 0; 0]
+  | 1 => [1; 1; 2]
+  | 2 => [2; 4; 0]
+  | 3 => [3; 0; 5]
+  | 4 => [4; 1; 1]
+  | S _ => [0; 0; 0]
+  end.
+
+(*  Вектора ссылок  *)
+Definition exampleTuple0 : Vn 0 := [].
+Definition exampleTuple1 : Vn 1 := [0].
+Definition exampleTuple4 : Vn 4 := [3; 2; 1; 0].
+
+(*  Преобразование векторов ссылок во вложенные упорядоченные пары (списки)  *)
+Definition nestedPair0 := VnToNP exampleTuple0.
+Definition nestedPair1 := VnToNP exampleTuple1.
+Definition nestedPair4 := VnToNP exampleTuple4.
+
+Compute nestedPair0.  (* Ожидается результат: { } *)
+Compute nestedPair1.  (* Ожидается результат: {0} *)
+Compute nestedPair4.  (* Ожидается результат: {3, 2, 1, 0} *)
+
+(*  Вычисление значений преобразованной функции трёхмерной асети   *)
+Compute (ANetVfToANetLf complexExampleNet) 0. (* Ожидается результат: {0, 0, 0} *)
+Compute (ANetVfToANetLf complexExampleNet) 1. (* Ожидается результат: {1, 1, 2} *)
+Compute (ANetVfToANetLf complexExampleNet) 2. (* Ожидается результат: {2, 4, 0} *)
+Compute (ANetVfToANetLf complexExampleNet) 3. (* Ожидается результат: {3, 0, 5} *)
+Compute (ANetVfToANetLf complexExampleNet) 4. (* Ожидается результат: {4, 1, 1} *)
+Compute (ANetVfToANetLf complexExampleNet) 5. (* Ожидается результат: {0, 0, 0} *)
+
+(*  Асеть вложенных УП (упорядоченных пар)  *)
+Definition testPairsNet : ANetLf :=
+  fun id => match id with
+  | 0 => {5, 0, 8}
+  | 1 => {7, 1, 2}
+  | 2 => {2, 4, 5}
+  | 3 => {3, 1, 5}
+  | 4 => {4, 2, 1}
+  | S _ => {0, 0, 0}
+  end.
+
+(*  Преоразованная асеть вложенных УП в трёхмерную асеть (размерность должна совпадать) *)
+Definition testTuplesNet : ANetVf 3 :=
+  ANetLfToANetVf testPairsNet.
+
+(*  Вычисление значений преобразованной функции асети вложенных УП   *)
+Compute testTuplesNet 0.   (* Ожидается результат: [5; 0; 8] *)
+Compute testTuplesNet 1.   (* Ожидается результат: [7; 1; 2] *)
+Compute testTuplesNet 2.   (* Ожидается результат: [2; 4; 5] *)
+Compute testTuplesNet 3.   (* Ожидается результат: [3; 1; 5] *)
+Compute testTuplesNet 4.   (* Ожидается результат: [4; 2; 1] *)
+Compute testTuplesNet 5.   (* Ожидается результат: [0; 0; 0] *)
+
+(*  Преобразование вложенных УП в асеть дуплетов  *)
+Compute NPToANetDl { 121, 21, 1343 }.
+(* Должно вернуть: {(121, 1), (21, 2), (1343, 2)} *)
+
+(*  Добавление вложенных УП в асеть дуплетов  *)
+Compute AddNPToANetDl {(121, 1), (21, 2), (1343, 2)} {12, 23, 34}. 
+(* Ожидается результат: {(121, 1), (21, 2), (1343, 2), (12, 4), (23, 5), (34, 5)} *)
+
+(*  Преобразование асети дуплетов во вложенные УП  *)
+Compute ANetDlToNP {(121, 1), (21, 2), (1343, 2)}. 
+(* Ожидается результат: {121, 21, 1343} *)
+  
+Compute ANetDlToNP {(121, 1), (21, 2), (1343, 2), (12, 4), (23, 5), (34, 5)}. 
+(* Ожидается результат: {121, 21, 1343} *)
+
+(*  Чтение вложенных УП из асети дуплетов по индексу дуплета - начала вложенных УП  *)
+Compute ANetDl_readNP {(121, 1), (21, 2), (1343, 2), (12, 4), (23, 5), (34, 5)} 0.
+(* Ожидается результат: {121, 21, 1343} *)
+
+Compute ANetDl_readNP {(121, 1), (21, 2), (1343, 2), (12, 4), (23, 5), (34, 5)} 3.
+(* Ожидается результат: {12, 23, 34} *)
+
+
+(*  Определяем асеть вложенных УП *)
 Definition test_anetl := { {121, 21, 1343}, {12, 23}, {34}, {121, 21, 1343}, {12, 23}, {34} }.
+
+(*  Преобразованная асеть вложенных УП в асеть дуплетов  *)
 Definition test_anetd := ANetLlToANetDl test_anetl.
 
+(*  Вычисление преобразованной асети вложенных УП в асеть дуплетов  *)
 Compute test_anetd.
 (* Ожидается результат:
  {(121, 1), (21, 2), (1343, 2),
@@ -571,37 +611,47 @@ Compute test_anetd.
   (34, 11)} *)
 
 
-Compute ANetDl_offsetNP test_anetd 0.
-Compute ANetDl_offsetNP test_anetd 1.
-Compute ANetDl_offsetNP test_anetd 2.
-Compute ANetDl_offsetNP test_anetd 3.
-Compute ANetDl_offsetNP test_anetd 4.
-Compute ANetDl_offsetNP test_anetd 5.
-Compute ANetDl_offsetNP test_anetd 6.
-Compute ANetDl_offsetNP test_anetd 7.
+(*  Вычисления преобразования асети вложенных УП в асеть дуплетов и обратно в test_anetl *) 
+Compute ANetDlToANetLl test_anetd.
+(* Ожидается результат:
+  {{121, 21, 1343}, {12, 23}, {34}, {121, 21, 1343}, {12, 23}, {34}}  *)
 
+(*  Вычисления смещения вложенных УП в асети дуплетов по их порядковому номеру  *)
+Compute ANetDl_offsetNP test_anetd 0.   (* Ожидается результат: 0 *)
+Compute ANetDl_offsetNP test_anetd 1.   (* Ожидается результат: 3 *)
+Compute ANetDl_offsetNP test_anetd 2.   (* Ожидается результат: 5 *)
+Compute ANetDl_offsetNP test_anetd 3.   (* Ожидается результат: 6 *)
+Compute ANetDl_offsetNP test_anetd 4.   (* Ожидается результат: 9 *)
+Compute ANetDl_offsetNP test_anetd 5.   (* Ожидается результат: 11 *)
+Compute ANetDl_offsetNP test_anetd 6.   (* Ожидается результат: 12 *)
+Compute ANetDl_offsetNP test_anetd 7.   (* Ожидается результат: 12 *)
+
+
+(*  Определяем трёхмерную асеть как последователность векторов длины 3  *)
 Definition test_anetv : ANetVl 3 :=
   { [0; 0; 0], [1; 1; 2], [2; 4; 0], [3; 0; 5], [4; 1; 1], [0; 0; 0] }.
 
-Compute ANetVlToANetDl test_anetv.
-
-Compute test_anetd.
-(* Ожидается результат:
- {(121, 1), (21, 2), (1343, 2),
-  (12, 4), (23, 4),
-  (34, 5),
-  (121, 7), (21, 8), (1343, 8),
-  (12, 10), (23, 10),
-  (34, 11)} *)
-
-Compute ANetDlToANetLl test_anetd.
-
+(*  Преобразованная трёхмерная асеть в асеть дуплетов через асеть вложенных УП  *)
 Definition test_anetdl : ANetDl := ANetVlToANetDl test_anetv.
 
+(*  Вычисление трёхмерной асети преобразованной в асеть дуплетов через асеть вложенных УП  *)
+Compute test_anetdl.
+(* Ожидается результат:
+{ (0, 1), (0, 2), (0, 2),
+  (1, 4), (1, 5), (2, 5),
+  (2, 7), (4, 8), (0, 8),
+  (3, 10), (0, 11), (5, 11),
+  (4, 13), (1, 14), (1, 14),
+  (0, 16), (0, 17), (0, 17)}  *)
+
+(*  Преобразованная трёхмерная асеть в асеть дуплетов через асеть вложенных УП и наоборот в трёхмерную асеть  *)
 Definition result_TuplesNet : ANetVl 3 :=
   ANetLlToANetVl (ANetDlToANetLl test_anetdl).
 
+(*  Итоговая проверка эквивалентности ассоциативных сетей   *)
 Compute result_TuplesNet.
+(* Ожидается результат:
+  { [0; 0; 0], [1; 1; 2], [2; 4; 0], [3; 0; 5], [4; 1; 1], [0; 0; 0] }  *)
 
 
 
