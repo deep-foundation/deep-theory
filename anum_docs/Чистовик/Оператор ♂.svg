@@ -1,0 +1,18 @@
+<svg role="img" width="120" height="100" viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Самозамыкание начала -->
+  <path d="M30,50 Q30,20 60,20 T90,50" fill="none" stroke="#2c3e50" stroke-width="2" marker-end="url(#arrow)"/>
+  
+  <!-- Точка связи -->
+  <circle cx="30" cy="50" r="5" fill="#e74c3c"/>
+  <text x="25" y="45" font-size="12">♂v</text>
+
+  <!-- Значение -->
+  <circle cx="90" cy="50" r="5" fill="#3498db"/>
+  <text x="85" y="70" font-size="12">v</text>
+
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#2c3e50"/>
+    </marker>
+  </defs>
+</svg>
